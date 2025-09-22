@@ -1,105 +1,173 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <title>إقرار المدرب</title>
+  <title>لوحة التحكم - ورش العمل</title>
   <style>
-    body { font-family: Arial, sans-serif; direction: rtl; background: #f9f9f9; text-align: right; margin: 20px; }
-    .container { max-width: 700px; margin: auto; background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-    h2 { text-align: center; color: #003366; }
-    label { display: block; margin-top: 10px; font-weight: bold; }
-    input, textarea { width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #ccc; border-radius: 5px; }
-    textarea { height: 200px; resize: vertical; overflow-y: scroll; white-space: pre-line; }
-    .scroll-box { height: 200px; overflow-y: scroll; border: 1px solid #ccc; padding: 10px; margin-top: 10px; background: #fefefe; }
-    .checkbox { margin-top: 15px; }
-    button { margin-top: 20px; padding: 10px 15px; background: #003366; color: #fff; border: none; border-radius: 5px; cursor: pointer; }
-    button:hover { background: #0055a5; }
-    .logo { text-align: center; margin-bottom: 20px; }
-    .logo img { max-width: 150px; }
+    body {
+      font-family: "Tahoma", sans-serif;
+      background: #f4f7fb;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background: linear-gradient(90deg, #004080, #0066cc);
+      padding: 20px;
+      text-align: center;
+      color: #fff;
+    }
+    .container {
+      max-width: 1100px;
+      margin: 20px auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    h2 { text-align: center; color: #004080; margin-bottom: 20px; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    table, th, td {
+      border: 1px solid #ccc;
+    }
+    th {
+      background: #004080;
+      color: #fff;
+      padding: 10px;
+    }
+    td {
+      padding: 8px;
+      text-align: center;
+    }
+    button {
+      padding: 6px 12px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      color: #fff;
+      margin: 2px;
+    }
+    .print-btn { background: #28a745; }
+    .excel-btn { background: #007bff; }
+    .cancel-btn { background: #dc3545; }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="logo">
-      <img src="https://identity.ksu.edu.sa/sites/identity.ksu.edu.sa/files/imce_images/logo_9.png" alt="شعار جامعة الملك سعود">
-    </div>
-    <h2>إقرار المدرب</h2>
 
-    <form id="declarationForm">
-      <label>الاسم الكامل</label>
-      <input type="text" id="name" required>
+<header>
+  <h1>📊 لوحة التحكم - ورش العمل</h1>
+</header>
 
-      <label>المدينة</label>
-      <input type="text" id="city" required>
+<div class="container">
+  <h2>قائمة المسجلين</h2>
+  <button class="excel-btn" onclick="exportToExcel()">⬇️ تصدير إلى Excel</button>
+  <table id="trainersTable">
+    <thead>
+      <tr>
+        <th>الاسم</th>
+        <th>المدينة</th>
+        <th>الجوال</th>
+        <th>الإيميل</th>
+        <th>الجهة</th>
+        <th>الإجراءات</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</div>
 
-      <label>رقم الجوال</label>
-      <input type="text" id="phone" required>
+<!-- Firebase -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
+  import { getFirestore, collection, getDocs, doc, deleteDoc, updateDoc } 
+    from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
 
-      <label>البريد الإلكتروني</label>
-      <input type="email" id="email" required>
+  const firebaseConfig = {
+    apiKey: "AIzaSyCC5Wea1ccPTVNo8nfe2fSv7s6JIKulXTc",
+    authDomain: "reservation-system-492d6.firebaseapp.com",
+    projectId: "reservation-system-492d6",
+    storageBucket: "reservation-system-492d6.appspot.com",
+    messagingSenderId: "982147661254",
+    appId: "1:982147661254:web:47606a698bd01b5b0746c7",
+    measurementId: "G-J3BQB3M68D"
+  };
 
-      <div class="scroll-box">
-        <p>
-ملتقى التوجيه والإرشاد المهني الأول
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
 
-التوضيحات والتعليمات الخاصة بإعداد وتقديم حقائب ورش العمل
-... (النص الكامل للتعليمات هنا) ...
-        </p>
-      </div>
+  async function loadTrainers() {
+    const tableBody = document.querySelector("#trainersTable tbody");
+    tableBody.innerHTML = "";
+    const querySnapshot = await getDocs(collection(db, "trainers"));
+    querySnapshot.forEach((docSnap) => {
+      const data = docSnap.data();
+      const row = document.createElement("tr");
 
-      <div class="checkbox">
-        <label>
-          <input type="checkbox" id="agree" required>
-          أقر بأنني اطلعت على الشروط والأحكام وأوافق عليها
-        </label>
-      </div>
-
-      <p style="color:red; font-weight:bold;">📌 ملاحظة: يرجى إرسال صورتك الشخصية على البريد الإلكتروني التالي: sabukhalil.c@KSU.EDU.SA (سيتم استخدامها على شاشة الإعلان).</p>
-
-      <button type="submit">إرسال والموافقة</button>
-    </form>
-  </div>
-
-  <!-- Firebase -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-
-    const firebaseConfig = {
-      apiKey: "YOUR_API_KEY",
-      authDomain: "YOUR_PROJECT.firebaseapp.com",
-      projectId: "YOUR_PROJECT",
-      storageBucket: "YOUR_PROJECT.appspot.com",
-      messagingSenderId: "XXXXXXX",
-      appId: "XXXXXXXX"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-
-    document.getElementById("declarationForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
-
-      const trainer = {
-        name: document.getElementById("name").value,
-        city: document.getElementById("city").value,
-        phone: document.getElementById("phone").value,
-        email: document.getElementById("email").value,
-        approved: true,
-        timestamp: new Date()
-      };
-
-      try {
-        await addDoc(collection(db, "trainers"), trainer);
-        alert("✅ تم تسجيل بياناتك بنجاح، سيتم نقلك الآن إلى صفحة ورش العمل.");
-        
-        // ✅ التحويل إلى صفحة ورش العمل
-        window.location.href = "./workshops.html"; 
-
-      } catch (e) {
-        alert("❌ حدث خطأ أثناء الحفظ: " + e.message);
-      }
+      row.innerHTML = `
+        <td>${data.name || ""}</td>
+        <td>${data.city || ""}</td>
+        <td>${data.phone || ""}</td>
+        <td>${data.email || ""}</td>
+        <td>${data.organization || ""}</td>
+        <td>
+          <button class="print-btn" onclick="printDeclaration('${data.name}')">🖨️ طباعة الإقرار</button>
+          <button class="cancel-btn" onclick="cancelReservation('${docSnap.id}')">❌ إلغاء الحجز</button>
+        </td>
+      `;
+      tableBody.appendChild(row);
     });
-  </script>
+  }
+
+  // طباعة الإقرار
+  window.printDeclaration = function(name) {
+    const win = window.open("", "_blank");
+    win.document.write(`
+      <html>
+      <head><title>إقرار المدرب</title></head>
+      <body>
+        <h2>إقرار المدرب</h2>
+        <p>أقر أنا المدرب: <b>${name}</b> بالاطلاع على جميع التعليمات والالتزام بها.</p>
+        <p>توقيع المدرب: ________________</p>
+        <p>التاريخ: ${new Date().toLocaleDateString("ar-SA")}</p>
+        <script>window.print();<\/script>
+      </body>
+      </html>
+    `);
+    win.document.close();
+  }
+
+  // إلغاء الحجز
+  window.cancelReservation = async function(id) {
+    if (confirm("هل أنت متأكد من إلغاء هذا الحجز؟")) {
+      await deleteDoc(doc(db, "trainers", id));
+      alert("✅ تم إلغاء الحجز");
+      loadTrainers();
+    }
+  }
+
+  // تصدير إلى Excel
+  window.exportToExcel = function() {
+    const table = document.getElementById("trainersTable");
+    let csv = [];
+    for (let i = 0; i < table.rows.length; i++) {
+      let row = [], cols = table.rows[i].cells;
+      for (let j = 0; j < cols.length - 1; j++) { // نتجاهل عمود الإجراءات
+        row.push(cols[j].innerText);
+      }
+      csv.push(row.join(","));
+    }
+    const csvContent = "data:text/csv;charset=utf-8," + csv.join("\n");
+    const a = document.createElement("a");
+    a.href = encodeURI(csvContent);
+    a.download = "trainers_report.csv";
+    a.click();
+  }
+
+  // تحميل البيانات عند فتح الصفحة
+  loadTrainers();
+</script>
 </body>
 </html>
