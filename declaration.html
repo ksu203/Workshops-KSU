@@ -215,10 +215,12 @@ try {
   alert("✅ تم تسجيل بياناتك بنجاح، اضغط موافق للانتقال.");
   window.location.href = "https://ahzhrani2-cmyk.github.io/workshops-ksu/workshops.html";
 } catch (e) {
-  alert("❌ حدث خطأ أثناء الحفظ: " + e.message);
+  console.error("❌ خطأ أثناء الحفظ:", e.message);
+  alert("❌ لم يتم حفظ بياناتك! يرجى التحقق من اتصالك أو المحاولة مرة أخرى.");
     }
   });
 </script>
 </body>
 </html>
+
 
