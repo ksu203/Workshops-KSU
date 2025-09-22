@@ -83,10 +83,10 @@
 
   <form id="trainerForm">
     <label>الاسم الثلاثي *</label>
-    <input type="text" id="name" placeholder="ي" required>
+    <input type="text" id="name" placeholder="" required>
 
     <label>المدينة *</label>
-    <input type="text" id="city" placeholder="مثال: " required>
+    <input type="text" id="city" placeholder=" " required>
 
     <label>رقم التواصل *</label>
     <input type="text" id="phone" placeholder="05XXXXXXXX" required>
@@ -102,7 +102,7 @@
       <b>sabukhalil.c@KSU.EDU.SA</b> (سيتم استخدامها في شاشات اعلانات الملتقى الخاصة بورش العمل).
     </p>
 
-    <label>كرما الاطلاع على البنود أدناه:</label>
+    <label>كرما الإطلاع على البنود أدناه للأهمية:</label>
     <textarea readonly>
 حرصا على توحيد مستوى ورش العمل وضمان جودة المخرجات وتحقيق الفائدة المرجوة للمشاركين، نضع بين أيديكم مجموعة من التوضيحات والتعليمات الخاصة بإعداد وتقديم ورش العمل في ملتقى الإرشاد المهني.
 تهدف هذه الضوابط إلى مساعدة المدربين على الالتزام بالمعايير العلمية والتنظيمية المعتمدة، وتعزيز تجربة المتدربين من خلال محتوى متكامل وأسلوب عرض احترافي.
@@ -191,7 +191,7 @@
     try {
       await addDoc(collection(db, "trainers"), trainer);
       alert("✅ تم تسجيل بياناتك بنجاح، سيتم نقلك الآن إلى صفحة ورش العمل.");
-window.location.href = "/workshops/workshops.html";
+window.location.href = "https://ahzhrani2-cmyk.github.io/workshops/workshops.html";
     } catch (e) {
       alert("❌ حدث خطأ أثناء الحفظ: " + e.message);
     }
@@ -199,4 +199,5 @@ window.location.href = "/workshops/workshops.html";
 </script>
 </body>
 </html>
+
 
