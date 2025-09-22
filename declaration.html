@@ -190,8 +190,8 @@
 
     try {
       await addDoc(collection(db, "trainers"), trainer);
-      alert("✅ تم تسجيل بياناتك بنجاح، سيتم نقلك الآن إلى صفحة ورش العمل.");
-window.location.href = "https://ahzhrani2-cmyk.github.io/workshops/workshops.html";
+    alert("✅ تم تسجيل بياناتك بنجاح، اضغط موافق للانتقال.");
+window.location.href = "https://ahzhrani2-cmyk.github.io/workshops-ksu/workshops.html";
     } catch (e) {
       alert("❌ حدث خطأ أثناء الحفظ: " + e.message);
     }
@@ -199,6 +199,7 @@ window.location.href = "https://ahzhrani2-cmyk.github.io/workshops/workshops.htm
 </script>
 </body>
 </html>
+
 
 
 
