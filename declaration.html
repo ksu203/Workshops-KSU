@@ -134,14 +134,31 @@
 
     </textarea>
 
-    <label>
-      <input type="checkbox" id="agree" required>
-      اطلعت على الشروط والأحكام وأنا موافق عليها
-    </label>
+    <!-- خانة الموافقة -->
+<label>
+  <input type="checkbox" id="agreeCheckbox">
+  اطلعت على الشروط والأحكام وأنا موافق عليها
+</label>
 
-    <button type="submit" id="submitBtn" disabled>متابعة</button>
-  </form>
-</div>
+<!-- زر المتابعة كرابط -->
+<a id="continueLink" href="workshops.html" style="pointer-events: none; opacity: 0.5;">
+  <button type="button">متابعة</button>
+</a>
+
+<script>
+  const checkbox = document.getElementById("agreeCheckbox");
+  const continueLink = document.getElementById("continueLink");
+
+  checkbox.addEventListener("change", () => {
+    if (checkbox.checked) {
+      continueLink.style.pointerEvents = "auto"; // السماح بالضغط
+      continueLink.style.opacity = "1";          // زر واضح
+    } else {
+      continueLink.style.pointerEvents = "none"; // تعطيل الرابط
+      continueLink.style.opacity = "0.5";        // زر باهت
+    }
+  });
+</script>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
@@ -185,4 +202,5 @@
 </script>
 </body>
 </html>
+
 
