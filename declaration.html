@@ -213,7 +213,7 @@
 try {
   await addDoc(collection(db, "trainers"), trainer);
   alert("✅ تم تسجيل بياناتك بنجاح، اضغط موافق للانتقال.");
-  window.location.href = "https://ahzhrani2-cmyk.github.io/workshops-ksu/workshops.html";
+window.location.href = "https://ahzhrani2-cmyk.github.io/workshops-ksu/";
 } catch (e) {
   console.error("❌ خطأ أثناء الحفظ:", e.message);
   alert("❌ لم يتم حفظ بياناتك! يرجى التحقق من اتصالك أو المحاولة مرة أخرى.");
@@ -222,5 +222,6 @@ try {
 </script>
 </body>
 </html>
+
 
 
