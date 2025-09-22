@@ -4,190 +4,264 @@
   <meta charset="UTF-8">
   <title>ورش العمل</title>
   <style>
-    body { font-family: Arial, sans-serif; direction: rtl; background: #f9f9f9; text-align: right; }
-    .workshop { border: 1px solid #ccc; padding: 15px; margin: 15px; border-radius: 8px; background: #fff; }
-    .reserved { text-decoration: line-through; color: red; }
-    button { padding: 8px 12px; cursor: pointer; margin-top: 10px; }
-    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; }
-    .modal-content { background: white; padding: 20px; border-radius: 10px; width: 300px; }
-    .modal-content input { width: 100%; margin: 5px 0; padding: 8px; }
-
-    .container {
-      max-width: 700px;
-      margin: auto;
-      background: #fff;
+    body {
+      font-family: "Tahoma", sans-serif;
+      direction: rtl;
+      background: #f4f7fb;
+      margin: 0;
+      padding: 0;
+      color: #333;
+    }
+    header {
+      background: linear-gradient(90deg, #004080, #0066cc);
       padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      margin-top: 20px;
+      text-align: center;
+      color: #fff;
+    }
+    header img {
+      width: 100px;
+      display: block;
+      margin: 0 auto 10px;
+    }
+    .container {
+      max-width: 900px;
+      margin: 30px auto;
+      background: #fff;
+      padding: 25px;
+      border-radius: 15px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    h2 {
+      color: #004080;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    label {
+      font-weight: bold;
+      margin-top: 12px;
+      display: block;
+    }
+    input {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      box-sizing: border-box;
     }
     .agreement-box {
-      max-height: 200px;
+      max-height: 150px;
       overflow-y: auto;
       background: #f0f8ff;
       border: 1px solid #ccc;
       padding: 10px;
-      margin: 10px 0;
+      margin: 15px 0;
       border-radius: 6px;
       font-size: 14px;
       line-height: 1.6;
     }
+    button {
+      padding: 12px 20px;
+      background: linear-gradient(90deg,#0066cc,#004080);
+      border: none;
+      color: #fff;
+      font-size: 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 15px;
+      width: 100%;
+      transition: 0.3s;
+    }
+    button:disabled {
+      background: #999;
+      cursor: not-allowed;
+    }
+    button:hover:enabled {
+      background: linear-gradient(90deg,#004080,#002244);
+    }
+    .workshop {
+      border: 1px solid #ccc;
+      padding: 15px;
+      margin: 15px 0;
+      border-radius: 8px;
+      background: #fff;
+    }
+    .reserved {
+      text-decoration: line-through;
+      color: red;
+    }
   </style>
 </head>
 <body>
+
+<header>
+  <img src="https://identity.ksu.edu.sa/sites/identity.ksu.edu.sa/files/imce_images/logo_9.png" alt="شعار جامعة الملك سعود">
+  <h1>منصة ورش العمل</h1>
+</header>
+
+<div class="container" id="registration">
+  <h2>📋 التسجيل والإقرار</h2>
   
-  <!-- التسجيل + الإقرار -->
-  <div id="registration" class="container">
-    <h2>التسجيل والإقرار</h2>
-    <label>الاسم الثلاثي *</label>
-    <input type="text" id="name" required>
+  <label>الاسم الثلاثي *</label>
+  <input type="text" id="name" required>
 
-    <label>المدينة *</label>
-    <input type="text" id="city" required>
+  <label>المدينة *</label>
+  <input type="text" id="city" required>
 
-    <label>رقم التواصل *</label>
-    <input type="text" id="phone" placeholder="05XXXXXXXX" required>
+  <label>رقم التواصل *</label>
+  <input type="text" id="phone" placeholder="05XXXXXXXX" required>
 
-    <label>البريد الإلكتروني *</label>
-    <input type="email" id="email" placeholder="example@email.com" required>
+  <label>البريد الإلكتروني *</label>
+  <input type="email" id="email" placeholder="example@email.com" required>
 
-    <label>الجهة (اختياري)</label>
-    <input type="text" id="organization">
+  <label>الجهة (اختياري)</label>
+  <input type="text" id="organization">
 
-    <div class="agreement-box">
-      <p><b>📌 تعليمات:</b> حرصًا على توحيد مستوى ورش العمل وضمان جودة المخرجات وتحقيق الفائدة المرجوة للمشاركين، أتعهد بالالتزام بجميع التعليمات والتوضيحات الخاصة بإعداد وتقديم الورش.</p>
-      <p>أقر بالموافقة على تصوير الورشة واستخدام محتواها في منصات الملتقى.</p>
-    </div>
-
-    <label>
-      <input type="checkbox" id="agree"> اطلعت على الشروط والأحكام وأنا موافق
-    </label>
-
-    <button type="button" id="submitBtn" disabled>تسجيل ومتابعة</button>
+  <div class="agreement-box">
+    <p><b>📌 تعليمات:</b></p>
+    <ul>
+      <li>مدة الورشة من 50 إلى 60 دقيقة.</li>
+      <li>الحد الأقصى 15 مشارك لكل ورشة.</li>
+      <li>استخدام اللغة العربية في جميع العروض.</li>
+      <li>يُمنع الترويج لأي جهة أو علامة تجارية.</li>
+      <li>أوافق على تصوير الورشة واستخدام محتواها.</li>
+    </ul>
   </div>
 
-  <!-- قائمة الورش -->
-  <div id="workshopsContainer" style="display:none;">
-    <h2>قائمة ورش العمل</h2>
-    <div id="workshops"></div>
+  <label>
+    <input type="checkbox" id="agree"> اطلعت على الشروط والأحكام وأنا موافق
+  </label>
+
+  <button id="submitBtn" disabled>تسجيل ومتابعة</button>
+</div>
+
+<div class="container" id="workshopsContainer" style="display:none;">
+  <h2>📝 قائمة ورش العمل</h2>
+  <div id="workshops"></div>
+</div>
+
+<!-- نافذة الحجز -->
+<div id="reservationModal" class="modal" style="display:none;">
+  <div class="modal-content">
+    <h3>تسجيل الحجز</h3>
+    <input type="text" id="visitorName" placeholder="الاسم الكامل" required>
+    <input type="email" id="visitorEmail" placeholder="البريد الإلكتروني" required>
+    <input type="text" id="visitorPhone" placeholder="رقم الجوال" required>
+    <button onclick="confirmReservation()">تأكيد</button>
+    <button onclick="closeModal()">إلغاء</button>
   </div>
+</div>
 
-  <!-- نافذة بيانات الزائر -->
-  <div id="reservationModal" class="modal">
-    <div class="modal-content">
-      <h3>تسجيل الحجز</h3>
-      <input type="text" id="visitorName" placeholder="الاسم الكامل" required>
-      <input type="email" id="visitorEmail" placeholder="البريد الإلكتروني" required>
-      <input type="text" id="visitorPhone" placeholder="رقم الجوال" required>
-      <button onclick="confirmReservation()">تأكيد</button>
-      <button onclick="closeModal()">إلغاء</button>
-    </div>
-  </div>
+<!-- Firebase -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
+  import { getFirestore, collection, doc, updateDoc, onSnapshot, addDoc } 
+    from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
 
-  <!-- Firebase -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
-    import { getFirestore, collection, doc, updateDoc, onSnapshot, addDoc } 
-      from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
+  const firebaseConfig = {
+    apiKey: "AIzaSyCC5Wea1ccPTVNo8nfe2fSv7s6JIKulXTc",
+    authDomain: "reservation-system-492d6.firebaseapp.com",
+    projectId: "reservation-system-492d6",
+    storageBucket: "reservation-system-492d6.appspot.com",
+    messagingSenderId: "982147661254",
+    appId: "1:982147661254:web:47606a698bd01b5b0746c7",
+    measurementId: "G-J3BQB3M68D"
+  };
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyCC5Wea1ccPTVNo8nfe2fSv7s6JIKulXTc",
-      authDomain: "reservation-system-492d6.firebaseapp.com",
-      projectId: "reservation-system-492d6",
-      storageBucket: "reservation-system-492d6.appspot.com",
-      messagingSenderId: "982147661254",
-      appId: "1:982147661254:web:47606a698bd01b5b0746c7",
-      measurementId: "G-J3BQB3M68D"
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const workshopsRef = collection(db, "workshops");
+  let currentWorkshopId = null;
+  let registered = false;
+
+  // checkbox تفعيل زر التسجيل بعد الموافقة
+  const checkbox = document.getElementById("agree");
+  const submitBtn = document.getElementById("submitBtn");
+  checkbox.addEventListener("change", () => {
+    submitBtn.disabled = !checkbox.checked;
+  });
+
+  // عند التسجيل
+  submitBtn.addEventListener("click", async () => {
+    const trainer = {
+      name: document.getElementById("name").value,
+      city: document.getElementById("city").value,
+      phone: document.getElementById("phone").value,
+      email: document.getElementById("email").value,
+      organization: document.getElementById("organization").value,
+      approved: true,
+      timestamp: new Date()
     };
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const workshopsRef = collection(db, "workshops");
-    let currentWorkshopId = null;
+    if (!trainer.name || !trainer.city || !trainer.phone || !trainer.email) {
+      alert("⚠️ الرجاء تعبئة جميع الحقول المطلوبة");
+      return;
+    }
 
-    // التحكم بزر الموافقة
-    const checkbox = document.getElementById("agree");
-    const submitBtn = document.getElementById("submitBtn");
-    checkbox.addEventListener("change", () => {
-      submitBtn.disabled = !checkbox.checked;
+    try {
+      await addDoc(collection(db, "trainers"), trainer);
+      alert("✅ تم تسجيل بياناتك بنجاح، يمكنك الآن حجز ورش العمل.");
+      document.getElementById("registration").style.display = "none";
+      document.getElementById("workshopsContainer").style.display = "block";
+      registered = true;
+    } catch (e) {
+      alert("❌ خطأ أثناء حفظ البيانات: " + e.message);
+    }
+  });
+
+  // عرض الورش
+  onSnapshot(workshopsRef, (snapshot) => {
+    const container = document.getElementById('workshops');
+    container.innerHTML = "";
+    let i = 1;
+    snapshot.forEach((docSnap) => {
+      const data = docSnap.data();
+      const div = document.createElement('div');
+      div.className = "workshop";
+      div.innerHTML = `
+        <h3>${i}. ${data.title}</h3>
+        <p><strong>📅 التاريخ:</strong> ${data.date || ''}</p>
+        <p><strong>⏰ الوقت:</strong> ${data.time || ''}</p>
+        <ul>${data.topics ? data.topics.map(t => `<li>${t}</li>`).join("") : ''}</ul>
+        ${data.reserved 
+          ? `<span>محجوز ✅<br>👤 ${data.reservedBy?.name || ''} - 📧 ${data.reservedBy?.email || ''}</span>` 
+          : `<button onclick="openModal('${docSnap.id}')" ${!registered ? "disabled" : ""}>حجز</button>`}
+      `;
+      container.appendChild(div);
+      i++;
     });
+  });
 
-    // عند الضغط على تسجيل
-    submitBtn.addEventListener("click", async () => {
-      const trainer = {
-        name: document.getElementById("name").value,
-        city: document.getElementById("city").value,
-        phone: document.getElementById("phone").value,
-        email: document.getElementById("email").value,
-        organization: document.getElementById("organization").value,
-        approved: true,
-        timestamp: new Date()
-      };
+  // نافذة الحجز
+  window.openModal = function(id) {
+    if (!registered) {
+      alert("⚠️ يجب التسجيل أولاً قبل الحجز.");
+      return;
+    }
+    currentWorkshopId = id;
+    document.getElementById("reservationModal").style.display = "flex";
+  }
 
-      if (!trainer.name || !trainer.city || !trainer.phone || !trainer.email) {
-        alert("⚠️ الرجاء تعبئة جميع الحقول المطلوبة");
-        return;
-      }
+  window.closeModal = function() {
+    document.getElementById("reservationModal").style.display = "none";
+  }
 
-      try {
-        await addDoc(collection(db, "trainers"), trainer);
-        alert("✅ تم تسجيل بياناتك بنجاح، يمكنك الآن حجز ورش العمل.");
-        document.getElementById("registration").style.display = "none";
-        document.getElementById("workshopsContainer").style.display = "block";
-      } catch (e) {
-        alert("❌ خطأ أثناء حفظ البيانات: " + e.message);
-      }
-    });
+  window.confirmReservation = async function() {
+    const name = document.getElementById("visitorName").value;
+    const email = document.getElementById("visitorEmail").value;
+    const phone = document.getElementById("visitorPhone").value;
 
-    // عرض الورش
-    onSnapshot(workshopsRef, (snapshot) => {
-      const container = document.getElementById('workshops');
-      container.innerHTML = "";
-      let i = 1;
-      snapshot.forEach((docSnap) => {
-        const data = docSnap.data();
-        const div = document.createElement('div');
-        div.className = "workshop";
-        div.innerHTML = `
-          <h3>${i}. ${data.title}</h3>
-          <p><strong>📅 التاريخ:</strong> ${data.date || ''}</p>
-          <p><strong>⏰ الوقت:</strong> ${data.time || ''}</p>
-          <ul>${data.topics ? data.topics.map(t => `<li>${t}</li>`).join("") : ''}</ul>
-          ${data.reserved 
-            ? `<span>محجوز ✅<br>👤 ${data.reservedBy?.name || ''} - 📧 ${data.reservedBy?.email || ''}</span>` 
-            : `<button onclick="openModal('${docSnap.id}')">حجز</button>`}
-        `;
-        container.appendChild(div);
-        i++;
+    if(name && email && phone) {
+      const docRef = doc(db, "workshops", currentWorkshopId);
+      await updateDoc(docRef, { 
+        reserved: true,
+        reservedBy: { name, email, phone }
       });
-    });
-
-    // نافذة الحجز
-    window.openModal = function(id) {
-      currentWorkshopId = id;
-      document.getElementById("reservationModal").style.display = "flex";
+      closeModal();
+    } else {
+      alert("⚠️ الرجاء إدخال جميع بيانات الحجز");
     }
-
-    window.closeModal = function() {
-      document.getElementById("reservationModal").style.display = "none";
-    }
-
-    window.confirmReservation = async function() {
-      const name = document.getElementById("visitorName").value;
-      const email = document.getElementById("visitorEmail").value;
-      const phone = document.getElementById("visitorPhone").value;
-
-      if(name && email && phone) {
-        const docRef = doc(db, "workshops", currentWorkshopId);
-        await updateDoc(docRef, { 
-          reserved: true,
-          reservedBy: { name, email, phone }
-        });
-        closeModal();
-      } else {
-        alert("⚠️ الرجاء إدخال جميع بيانات الحجز");
-      }
-    }
-  </script>
+  }
+</script>
 </body>
 </html>
