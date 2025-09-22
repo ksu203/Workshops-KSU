@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>إقرار المدرب</title>
+  <style>
+    body {
+      font-family: "Tahoma", sans-serif;
+      direction: rtl;
+      text-align: right;
+      margin: 30px;
+      background-color: #f9f9f9;
+    }
+    .container {
+      max-width: 700px;
+      margin: auto;
+      background: white;
+      padding: 25px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    h2 {
+      text-align: center;
+      color: #003366;
+    }
+    label {
+      font-weight: bold;
+      display: block;
+      margin-top: 15px;
+    }
+    input, textarea {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    textarea {
+      height: 200px;
+      overflow-y: scroll;
+    }
+    .note {
+      font-weight: bold;
+      color: red;
+      margin: 15px 0;
+      text-align: center;
+    }
+    button {
+      display: block;
+      width: 100%;
+      background-color: #0066cc;
+      color: white;
+      padding: 12px;
+      font-size: 16px;
+      border: none;
+      border-radius: 5px;
+      margin-top: 15px;
+      cursor: pointer;
+    }
+    button:disabled {
+      background-color: #aaa;
+      cursor: not-allowed;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <img src="https://identity.ksu.edu.sa/sites/identity.ksu.edu.sa/files/imce_images/logo_9.png" 
+       alt="شعار جامعة الملك سعود" style="width:120px; float:right; margin:10px;">
+  <br clear="all">
+
+  <h2>إقرار المدرب</h2>
+
+  <form id="trainerForm">
+    <label>الاسم *</label>
+    <input type="text" id="name" required>
+
+    <label>المدينة *</label>
+    <input type="text" id="city" required>
+
+    <label>رقم التواصل *</label>
+    <input type="text" id="phone" placeholder="05XXXXXXXX" required>
+
+    <label>البريد الإلكتروني *</label>
+    <input type="email" id="email" required>
+
+    <label>الجهة (اختياري)</label>
+    <input type="text" id="organization">
+
+    <p class="note">
+      📌 ملاحظة: يجب إرسال صورتك الشخصية إلى البريد:
+      <b>sabukhalil.c@KSU.EDU.SA</b> (ستستخدم في شاشة الإعلان).
+    </p>
+
+    <label>نص الإقرار:</label>
+    <textarea readonly>
+ملتقى التوجيه والإرشاد المهني الأول
+
+التوضيحات والتعليمات الخاصة بإعداد وتقديم حقائب ورش العمل...
+[👉 ضع هنا كامل نص الإقرار]
+    </textarea>
+
+    <label>
+      <input type="checkbox" id="agree" required>
+      اطلعت على الشروط والأحكام وأنا موافق عليها
+    </label>
+
+    <button type="submit" id="submitBtn" disabled>متابعة</button>
+  </form>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_PROJECT.firebaseapp.com",
+    projectId: "YOUR_PROJECT",
+    storageBucket: "YOUR_PROJECT.appspot.com",
+    messagingSenderId: "XXXXXXX",
+    appId: "XXXXXXXX"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  document.getElementById("declarationForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const trainer = {
+      name: document.getElementById("name").value,
+      city: document.getElementById("city").value,
+      phone: document.getElementById("phone").value,
+      email: document.getElementById("email").value,
+      approved: true,
+      timestamp: new Date()
+    };
+
+    try {
+      await addDoc(collection(db, "trainers"), trainer);
+      alert("✅ تم تسجيل بياناتك بنجاح، سيتم نقلك الآن إلى صفحة ورش العمل.");
+      
+      // ✅ التحويل لصفحة ورش العمل
+      window.location.href = "./workshops.html"; 
+      
+    } catch (e) {
+      alert("❌ حدث خطأ أثناء الحفظ: " + e.message);
+    }
+  });
+</script>
+</body>
+</html>
