@@ -15,7 +15,7 @@
     }
     h1 {
       text-align: center;
-      color: #333;
+      color: #222;
     }
     .workshop {
       background: #fff;
@@ -26,16 +26,23 @@
       width: 80%;
     }
     .workshop h2 {
-      margin-top: 0;
-      color: #007bff;
+      margin: 0 0 10px;
+      color: #0056b3;
     }
     .meta {
-      margin: 10px 0;
-      font-size: 14px;
+      margin: 5px 0;
+      font-size: 15px;
       color: #444;
     }
+    .topics {
+      margin-top: 10px;
+    }
+    .topics strong {
+      color: #000;
+    }
     ul {
-      margin: 10px 0;
+      margin: 5px 0 15px;
+      padding-right: 20px;
     }
     button {
       background: #007bff;
@@ -72,13 +79,13 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // بيانات المستخدم المخزنة من صفحة الإقرار
+    // بيانات المدرب من صفحة الإقرار
     const trainerName = localStorage.getItem("trainerName");
     const trainerEmail = localStorage.getItem("trainerEmail");
     const trainerPhone = localStorage.getItem("trainerPhone");
     const trainerCity = localStorage.getItem("trainerCity");
 
-    // عرض الورش
+    // تحميل الورش
     async function loadWorkshops() {
       const container = document.getElementById("workshops");
       const snapshot = await db.collection("workshops").get();
@@ -87,20 +94,24 @@
         const w = doc.data();
         const div = document.createElement("div");
         div.className = "workshop";
+
         div.innerHTML = `
-          <h2>${w.title}</h2>
-          <div class="meta">📅 التاريخ: ${w.date || "غير محدد"}</div>
-          <div class="meta">⏰ الوقت: ${w.time || "غير محدد"}</div>
-          <ul>
-            ${(w.topics || []).map(t => `<li>${t}</li>`).join("")}
-          </ul>
+          <h2>${w.title || "ورشة بدون عنوان"}</h2>
+          <div class="meta">📅 <strong>التاريخ:</strong> ${w.date || "غير محدد"}</div>
+          <div class="meta">⏰ <strong>الوقت:</strong> ${w.time || "غير محدد"}</div>
+          <div class="topics">
+            <strong>المحاور:</strong>
+            <ul>
+              ${(w.topics || []).map(t => `<li>${t}</li>`).join("")}
+            </ul>
+          </div>
           <button onclick="reserveWorkshop('${doc.id}')">حجز</button>
         `;
         container.appendChild(div);
       });
     }
 
-    // الحجز باسم المستخدم المخزن
+    // الحجز باسم المدرب المسجل
     async function reserveWorkshop(workshopId) {
       if (!trainerName || !trainerEmail) {
         alert("❌ يرجى العودة لتسجيل بياناتك في صفحة الإقرار أولاً.");
