@@ -6,56 +6,64 @@
   <style>
     body {
       font-family: "Tahoma", sans-serif;
-      direction: rtl;
-      text-align: right;
-      margin: 30px;
-      background-color: #f9f9f9;
+      background: #f0f4f8;
+      margin: 0;
+      padding: 20px;
     }
     .container {
       max-width: 700px;
       margin: auto;
-      background: white;
-      padding: 25px;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      background: #fff;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
     }
     h2 {
       text-align: center;
       color: #003366;
+      margin-bottom: 25px;
     }
     label {
       font-weight: bold;
-      display: block;
       margin-top: 15px;
+      display: block;
+      color: #333;
     }
     input, textarea {
       width: 100%;
-      padding: 10px;
-      margin-top: 5px;
+      padding: 12px;
+      margin-top: 8px;
       border: 1px solid #ccc;
-      border-radius: 5px;
+      border-radius: 8px;
+      font-size: 15px;
+      box-sizing: border-box;
     }
     textarea {
-      height: 200px;
-      overflow-y: scroll;
+      height: 180px;
+      background: #fdfdfd;
+      resize: none;
     }
     .note {
       font-weight: bold;
-      color: red;
-      margin: 15px 0;
+      color: #d9534f;
+      margin: 20px 0;
       text-align: center;
     }
     button {
       display: block;
       width: 100%;
-      background-color: #0066cc;
+      background: linear-gradient(90deg,#0066cc,#004080);
       color: white;
-      padding: 12px;
+      padding: 14px;
       font-size: 16px;
       border: none;
-      border-radius: 5px;
-      margin-top: 15px;
+      border-radius: 8px;
+      margin-top: 20px;
       cursor: pointer;
+      transition: 0.3s;
+    }
+    button:hover {
+      background: linear-gradient(90deg,#004080,#002244);
     }
     button:disabled {
       background-color: #aaa;
@@ -73,20 +81,20 @@
   <h2>إقرار المدرب</h2>
 
   <form id="trainerForm">
-    <label>الاسم *</label>
-    <input type="text" id="name" required>
+    <label>الاسم الثلاثي *</label>
+    <input type="text" id="name" placeholder="مثال: محمد أحمد الزهراني" required>
 
     <label>المدينة *</label>
-    <input type="text" id="city" required>
+    <input type="text" id="city" placeholder="مثال: الرياض" required>
 
     <label>رقم التواصل *</label>
     <input type="text" id="phone" placeholder="05XXXXXXXX" required>
 
     <label>البريد الإلكتروني *</label>
-    <input type="email" id="email" required>
+    <input type="email" id="email" placeholder="example@email.com" required>
 
     <label>الجهة (اختياري)</label>
-    <input type="text" id="organization">
+    <input type="text" id="organization" placeholder="مثال: جامعة الملك سعود">
 
     <p class="note">
       📌 ملاحظة: يجب إرسال صورتك الشخصية إلى البريد:
@@ -96,8 +104,7 @@
     <label>نص الإقرار:</label>
     <textarea readonly>
 ملتقى التوجيه والإرشاد المهني الأول
-
-التوضيحات والتعليمات الخاصة بإعداد وتقديم حقائب ورش العمل...
+...
 [👉 ضع هنا كامل نص الإقرار]
     </textarea>
 
@@ -126,7 +133,15 @@
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
-  document.getElementById("declarationForm").addEventListener("submit", async (e) => {
+  const form = document.getElementById("trainerForm");
+  const checkbox = document.getElementById("agree");
+  const submitBtn = document.getElementById("submitBtn");
+
+  checkbox.addEventListener("change", () => {
+    submitBtn.disabled = !checkbox.checked;
+  });
+
+  form.addEventListener("submit", async (e) => {
     e.preventDefault();
 
     const trainer = {
@@ -134,6 +149,7 @@
       city: document.getElementById("city").value,
       phone: document.getElementById("phone").value,
       email: document.getElementById("email").value,
+      organization: document.getElementById("organization").value,
       approved: true,
       timestamp: new Date()
     };
@@ -141,10 +157,7 @@
     try {
       await addDoc(collection(db, "trainers"), trainer);
       alert("✅ تم تسجيل بياناتك بنجاح، سيتم نقلك الآن إلى صفحة ورش العمل.");
-      
-      // ✅ التحويل لصفحة ورش العمل
       window.location.href = "./workshops.html"; 
-      
     } catch (e) {
       alert("❌ حدث خطأ أثناء الحفظ: " + e.message);
     }
