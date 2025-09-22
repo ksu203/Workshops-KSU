@@ -210,14 +210,15 @@
       timestamp: new Date()
     };
 
-    try {
-      await addDoc(collection(db, "trainers"), trainer);
-      alert("✅ تم تسجيل بياناتك بنجاح، اضغط موافق للانتقال.");
-      window.location.href = "https://ahzhrani2-cmyk.github.io/workshops-ksu/workshops.html";
-    } catch (e) {
-      alert("❌ حدث خطأ أثناء الحفظ: " + e.message);
+try {
+  await addDoc(collection(db, "trainers"), trainer);
+  alert("✅ تم تسجيل بياناتك بنجاح، اضغط موافق للانتقال.");
+  window.location.href = "https://ahzhrani2-cmyk.github.io/workshops-ksu/workshops.html";
+} catch (e) {
+  alert("❌ حدث خطأ أثناء الحفظ: " + e.message);
     }
   });
 </script>
 </body>
 </html>
+
