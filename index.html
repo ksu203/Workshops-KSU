@@ -2,90 +2,44 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <title>قائمة ورش العمل</title>
-  <script type="module">
-    // ✅ استيراد Firebase
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, collection, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-    // ✅ إعداد Firebase
-    const firebaseConfig = {
-      apiKey: "YOUR_API_KEY",
-      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-      projectId: "YOUR_PROJECT_ID",
-      storageBucket: "YOUR_PROJECT_ID.appspot.com",
-      messagingSenderId: "YOUR_SENDER_ID",
-      appId: "YOUR_APP_ID"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-
-    // ✅ تحميل الورش من Firestore
-    async function loadWorkshops() {
-      const querySnapshot = await getDocs(collection(db, "workshops"));
-      const list = document.getElementById("workshopsList");
-      list.innerHTML = "";
-
-      querySnapshot.forEach((doc) => {
-        const w = doc.data();
-
-        const div = document.createElement("div");
-        div.className = "workshop";
-        div.innerHTML = `
-          <h3>${w.title}</h3>
-          <p><b>📅 التاريخ:</b> ${w.date}</p>
-          <p><b>⏰ الوقت:</b> ${w.time}</p>
-          <ul>${w.topics.map(t => `<li>${t}</li>`).join("")}</ul>
-          <button class="reserveBtn" data-id="${doc.id}">حجز</button>
-        `;
-        list.appendChild(div);
-      });
-
-      attachReserveEvents();
-    }
-
-    // ✅ ربط أزرار الحجز ببيانات المدرب من localStorage
-    function attachReserveEvents() {
-      document.querySelectorAll(".reserveBtn").forEach((btn) => {
-        btn.addEventListener("click", async (e) => {
-          const trainer = JSON.parse(localStorage.getItem("trainerData"));
-          if (!trainer) {
-            alert("⚠️ يرجى التسجيل أولاً من صفحة الإقرار.");
-            window.location.href = "index.html";
-            return;
-          }
-
-          const workshopId = e.target.getAttribute("data-id");
-
-          try {
-            await addDoc(collection(db, "reservations"), {
-              workshopId: workshopId,
-              trainer: trainer,
-              timestamp: new Date()
-            });
-
-            alert("✅ تم الحجز تلقائياً باستخدام بياناتك المسجلة مسبقاً.");
-          } catch (error) {
-            alert("❌ حدث خطأ أثناء الحجز: " + error);
-          }
-        });
-      });
-    }
-
-    // ✅ تحميل الورش عند فتح الصفحة
-    loadWorkshops();
-  </script>
-
+  <title>الصفحة الرئيسية</title>
   <style>
-    body { font-family: Tahoma, Arial; margin: 20px; background: #f5f5f5; }
-    .workshop { background: #fff; padding: 15px; margin-bottom: 15px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-    button { background: #0078D7; color: #fff; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; }
-    button:hover { background: #005a9e; }
+    body {
+      font-family: "Tahoma", sans-serif;
+      text-align: center;
+      background: #f9f9f9;
+      padding: 50px;
+    }
+    img {
+      width: 150px;
+      margin-bottom: 20px;
+    }
+    h1 {
+      color: #003366;
+      margin-bottom: 30px;
+    }
+    a {
+      display: inline-block;
+      padding: 15px 30px;
+      background: #0066cc;
+      color: #fff;
+      text-decoration: none;
+      border-radius: 8px;
+      font-size: 18px;
+    }
+    a:hover {
+      background: #004999;
+    }
   </style>
 </head>
 <body>
-  <h1>📋 قائمة ورش العمل</h1>
-  <div id="workshopsList">⏳ جاري تحميل الورش...</div>
+  <!-- ✅ شعار جامعة الملك سعود -->
+  <img src="https://identity.ksu.edu.sa/sites/identity.ksu.edu.sa/files/imce_images/logo_9.png" 
+       alt="شعار جامعة الملك سعود">
+
+  <h1>مرحباً بكم في ملتقى الإرشاد المهني</h1>
+
+  <!-- ✅ زر واحد فقط للتوجه للتسجيل -->
+  <a href="declaration.html">تسجيل بيانات المدرب (الإقرار)</a>
 </body>
 </html>
