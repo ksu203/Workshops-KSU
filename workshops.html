@@ -15,7 +15,7 @@
     header {
       background: linear-gradient(90deg, #004080, #0066cc);
       padding: 20px;
-      text-align: right; /* محاذاة لليمين */
+      text-align: right;
       color: #fff;
     }
     header img {
@@ -79,7 +79,7 @@
       line-height: 1.6;
     }
     input[type="checkbox"] {
-      transform: scale(1.5); /* تكبير مربع الصح */
+      transform: scale(1.5);
       margin-left: 10px;
     }
     button {
@@ -122,6 +122,10 @@
     }
     .reserved {
       color: red;
+      font-weight: bold;
+    }
+    .available {
+      color: green;
       font-weight: bold;
     }
   </style>
@@ -203,16 +207,6 @@
 
   let currentUser = null;
   let registered = false;
-  let userAlreadyReserved = localStorage.getItem("userAlreadyReserved") === "true";
-
-  // استرجاع المستخدم إذا كان مسجل مسبقاً
-  const savedUser = localStorage.getItem("currentUser");
-  if (savedUser) {
-    currentUser = JSON.parse(savedUser);
-    registered = true;
-    document.getElementById("registration").style.display = "none";
-    document.getElementById("workshopsContainer").style.display = "block";
-  }
 
   // تفعيل زر التسجيل بعد الموافقة
   const checkbox = document.getElementById("agree");
@@ -241,9 +235,8 @@
     try {
       await addDoc(collection(db, "trainers"), trainer);
       currentUser = trainer;
-      localStorage.setItem("currentUser", JSON.stringify(trainer)); // حفظ بيانات المستخدم
       registered = true;
-      alert("✅ تم تسجيل بياناتك بنجاح، يمكنك الآن حجز ورشة واحدة فقط.");
+      alert("✅ تم تسجيل بياناتك بنجاح، يمكنك الآن الحجز.");
       document.getElementById("registration").style.display = "none";
       document.getElementById("workshopsContainer").style.display = "block";
     } catch (e) {
@@ -267,7 +260,7 @@
         <ul>${data.topics ? data.topics.map(t => `<li>${t}</li>`).join("") : ''}</ul>
         ${data.reserved 
           ? `<span class="reserved">غير متوفر ❌</span>` 
-          : `<span style="color:green;font-weight:bold;">متوفر ✅</span><br>
+          : `<span class="available">متوفر ✅</span><br>
              <button onclick="reserveWorkshop('${docSnap.id}')">حجز</button>`}
       `;
       container.appendChild(div);
@@ -281,10 +274,6 @@
       alert("⚠️ يجب التسجيل أولاً قبل الحجز.");
       return;
     }
-    if (userAlreadyReserved) {
-      alert("⚠️ لا يمكنك حجز أكثر من ورشة واحدة.");
-      return;
-    }
 
     const docRef = doc(db, "workshops", id);
     await updateDoc(docRef, { 
@@ -292,12 +281,11 @@
       reservedBy: { 
         name: currentUser.name, 
         email: currentUser.email, 
-        phone: currentUser.phone 
+        phone: currentUser.phone,
+        organization: currentUser.organization || '',
+        timestamp: new Date()
       }
     });
-
-    userAlreadyReserved = true;
-    localStorage.setItem("userAlreadyReserved", "true");
 
     alert("✅ تم حجز الورشة باسمك.");
   }
