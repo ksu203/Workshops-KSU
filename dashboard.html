@@ -22,7 +22,7 @@
       margin: 0;
     }
     .container {
-      max-width: 1000px;
+      max-width: 1100px;
       margin: 30px auto;
       background: #fff;
       padding: 25px;
@@ -113,15 +113,30 @@
       const data = docSnap.data();
       const div = document.createElement('div');
       div.className = "workshop";
+
+      // صياغة الوقت والتاريخ من timestamp
+      let reservedAt = "";
+      if (data.reservedBy?.timestamp) {
+        const dateObj = data.reservedBy.timestamp.toDate ? data.reservedBy.timestamp.toDate() : new Date(data.reservedBy.timestamp);
+        reservedAt = dateObj.toLocaleDateString("ar-EG") + " - " + dateObj.toLocaleTimeString("ar-EG");
+      }
+
       div.innerHTML = `
         <h3>${i}. ${data.title}</h3>
         <p><strong>📅 التاريخ:</strong> ${data.date || ''}</p>
         <p><strong>⏰ الوقت:</strong> ${data.time || ''}</p>
         <ul>${data.topics ? data.topics.map(t => `<li>${t}</li>`).join("") : ''}</ul>
-        ${data.reserved 
+        ${
+          data.reserved 
           ? `<span class="reserved">غير متوفر ❌</span><br>
+             <p><strong>👤 الاسم:</strong> ${data.reservedBy?.name || ''}</p>
+             <p><strong>📧 الإيميل:</strong> ${data.reservedBy?.email || ''}</p>
+             <p><strong>📱 الجوال:</strong> ${data.reservedBy?.phone || ''}</p>
+             <p><strong>🏢 الجهة:</strong> ${data.reservedBy?.organization || ''}</p>
+             <p><strong>🕒 تاريخ الحجز:</strong> ${reservedAt || '—'}</p>
              <button onclick="cancelReservation('${docSnap.id}')">إلغاء الحجز</button>`
-          : `<span class="available">متوفر ✅</span>`}
+          : `<span class="available">متوفر ✅</span>`
+        }
       `;
       container.appendChild(div);
       i++;
@@ -132,10 +147,12 @@
   window.cancelReservation = async function(id) {
     try {
       const docRef = doc(db, "workshops", id);
+
       await updateDoc(docRef, {
         reserved: false,
         reservedBy: {} // تفريغ بيانات الحجز
       });
+
       alert("✅ تم إلغاء الحجز وإعادة الورشة إلى حالة متوفر.");
     } catch (e) {
       alert("❌ حدث خطأ أثناء إلغاء الحجز: " + e.message);
