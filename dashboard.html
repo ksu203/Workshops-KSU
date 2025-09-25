@@ -66,7 +66,7 @@
       font-size: 14px;
       border-radius: 8px;
       cursor: pointer;
-      margin-top: 15px;
+      margin: 5px;
       transition: 0.3s;
     }
     button:hover {
@@ -84,6 +84,7 @@
   <h2>📋 قائمة الورش</h2>
   <div style="text-align:center">
     <button onclick="exportPDF()">📑 تصدير PDF</button>
+    <button onclick="exportExcel()">📊 تصدير Excel</button>
   </div>
   <table id="workshopsTable">
     <thead>
@@ -92,12 +93,12 @@
         <th>العنوان</th>
         <th>التاريخ</th>
         <th>الوقت</th>
-        <th>المحاور</th>
         <th>الحالة</th>
         <th>الاسم</th>
         <th>الإيميل</th>
         <th>الجوال</th>
         <th>الجهة</th>
+        <th>نبذة عنك</th>
         <th>تاريخ الحجز</th>
         <th>إجراء</th>
       </tr>
@@ -144,12 +145,12 @@
         <td>${data.title || ''}</td>
         <td>${data.date || ''}</td>
         <td>${data.time || ''}</td>
-        <td>${data.topics ? data.topics.join(" - ") : ''}</td>
         <td>${data.reserved ? '<span class="reserved">غير متوفر ❌</span>' : '<span class="available">متوفر ✅</span>'}</td>
         <td>${data.reservedBy?.name || ''}</td>
         <td>${data.reservedBy?.email || ''}</td>
         <td>${data.reservedBy?.phone || ''}</td>
         <td>${data.reservedBy?.organization || ''}</td>
+        <td>${data.reservedBy?.about || ''}</td>
         <td>${reservedAt || ''}</td>
         <td>${data.reserved ? `<button onclick="cancelReservation('${docSnap.id}')">إلغاء</button>` : ''}</td>
       `;
@@ -175,7 +176,11 @@
 
 <!-- مكتبة jsPDF -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<!-- مكتبة XLSX -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
 <script>
+  // تصدير PDF
   async function exportPDF() {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF({orientation: "landscape"});
@@ -192,13 +197,19 @@
       rows.push(rowData);
     }
 
-    // رسم جدول بسيط
     let startY = 25;
     rows.forEach((r, idx) => {
       doc.text(r.join(" | "), 10, startY + (idx*8));
     });
 
     doc.save("workshops.pdf");
+  }
+
+  // تصدير Excel
+  function exportExcel() {
+    const table = document.getElementById("workshopsTable");
+    const wb = XLSX.utils.table_to_book(table, { sheet: "ورش العمل" });
+    XLSX.writeFile(wb, "workshops.xlsx");
   }
 </script>
 
