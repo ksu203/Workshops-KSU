@@ -1,26 +1,206 @@
-const functions = require("firebase-functions");
-const nodemailer = require("nodemailer");
-
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: "your-email@gmail.com",
-    pass: "your-app-password"
-  }
-});
-
-exports.sendEmail = functions.firestore
-  .document("workshops/{workshopId}")
-  .onUpdate((change, context) => {
-    const after = change.after.data();
-    if (after.reserved && after.reservedBy?.email) {
-      const mailOptions = {
-        from: "your-email@gmail.com",
-        to: after.reservedBy.email,
-        subject: "تأكيد الحجز",
-        text: `مرحباً ${after.reservedBy.name}, تم تأكيد حجزك في ورشة ${after.title}`
-      };
-      return transporter.sendMail(mailOptions);
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <title>لوحة التحكم - ورش العمل</title>
+  <style>
+    body {
+      font-family: "Tahoma", sans-serif;
+      direction: rtl;
+      background: #f4f7fb;
+      margin: 0;
+      padding: 0;
+      color: #333;
     }
-    return null;
+    header {
+      background: linear-gradient(90deg, #004080, #0066cc);
+      padding: 20px;
+      text-align: center;
+      color: #fff;
+    }
+    header h1 {
+      margin: 0;
+    }
+    .container {
+      max-width: 1100px;
+      margin: 30px auto;
+      background: #fff;
+      padding: 25px;
+      border-radius: 15px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    h2 {
+      color: #004080;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    table, th, td {
+      border: 1px solid #ddd;
+    }
+    th, td {
+      padding: 10px;
+      text-align: center;
+    }
+    th {
+      background: #004080;
+      color: #fff;
+    }
+    .reserved {
+      color: red;
+      font-weight: bold;
+    }
+    .available {
+      color: green;
+      font-weight: bold;
+    }
+    button {
+      padding: 8px 14px;
+      background: linear-gradient(90deg,#cc0000,#800000);
+      border: none;
+      color: #fff;
+      font-size: 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 15px;
+      transition: 0.3s;
+    }
+    button:hover {
+      background: linear-gradient(90deg,#800000,#660000);
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>لوحة التحكم - ورش العمل</h1>
+</header>
+
+<div class="container">
+  <h2>📋 قائمة الورش</h2>
+  <div style="text-align:center">
+    <button onclick="exportPDF()">📑 تصدير PDF</button>
+  </div>
+  <table id="workshopsTable">
+    <thead>
+      <tr>
+        <th>م</th>
+        <th>العنوان</th>
+        <th>التاريخ</th>
+        <th>الوقت</th>
+        <th>المحاور</th>
+        <th>الحالة</th>
+        <th>الاسم</th>
+        <th>الإيميل</th>
+        <th>الجوال</th>
+        <th>الجهة</th>
+        <th>تاريخ الحجز</th>
+        <th>إجراء</th>
+      </tr>
+    </thead>
+    <tbody id="workshops"></tbody>
+  </table>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
+  import { getFirestore, collection, doc, updateDoc, onSnapshot } 
+    from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCC5Wea1ccPTVNo8nfe2fSv7s6JIKulXTc",
+    authDomain: "reservation-system-492d6.firebaseapp.com",
+    projectId: "reservation-system-492d6",
+    storageBucket: "reservation-system-492d6.appspot.com",
+    messagingSenderId: "982147661254",
+    appId: "1:982147661254:web:47606a698bd01b5b0746c7",
+    measurementId: "G-J3BQB3M68D"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const workshopsRef = collection(db, "workshops");
+
+  // عرض الورش في جدول
+  onSnapshot(workshopsRef, (snapshot) => {
+    const tbody = document.getElementById('workshops');
+    tbody.innerHTML = "";
+    let i = 1;
+    snapshot.forEach((docSnap) => {
+      const data = docSnap.data();
+      let reservedAt = "";
+      if (data.reservedBy?.timestamp) {
+        const dateObj = data.reservedBy.timestamp.toDate ? data.reservedBy.timestamp.toDate() : new Date(data.reservedBy.timestamp);
+        reservedAt = dateObj.toLocaleDateString("ar-EG") + " - " + dateObj.toLocaleTimeString("ar-EG");
+      }
+
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${i}</td>
+        <td>${data.title || ''}</td>
+        <td>${data.date || ''}</td>
+        <td>${data.time || ''}</td>
+        <td>${data.topics ? data.topics.join(" - ") : ''}</td>
+        <td>${data.reserved ? '<span class="reserved">غير متوفر ❌</span>' : '<span class="available">متوفر ✅</span>'}</td>
+        <td>${data.reservedBy?.name || ''}</td>
+        <td>${data.reservedBy?.email || ''}</td>
+        <td>${data.reservedBy?.phone || ''}</td>
+        <td>${data.reservedBy?.organization || ''}</td>
+        <td>${reservedAt || ''}</td>
+        <td>${data.reserved ? `<button onclick="cancelReservation('${docSnap.id}')">إلغاء</button>` : ''}</td>
+      `;
+      tbody.appendChild(row);
+      i++;
+    });
   });
+
+  // دالة إلغاء الحجز
+  window.cancelReservation = async function(id) {
+    try {
+      const docRef = doc(db, "workshops", id);
+      await updateDoc(docRef, {
+        reserved: false,
+        reservedBy: {}
+      });
+      alert("✅ تم إلغاء الحجز وإعادة الورشة إلى حالة متوفر.");
+    } catch (e) {
+      alert("❌ خطأ أثناء إلغاء الحجز: " + e.message);
+    }
+  }
+</script>
+
+<!-- مكتبة jsPDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+  async function exportPDF() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({orientation: "landscape"});
+    doc.text("📋 قائمة ورش العمل", 140, 15, {align:"center"});
+    
+    const table = document.getElementById("workshopsTable");
+    let rows = [];
+    for (let i=1; i<table.rows.length; i++) {
+      const cells = table.rows[i].cells;
+      let rowData = [];
+      for (let j=0; j<cells.length-1; j++) { // تجاهل عمود الإجراءات
+        rowData.push(cells[j].innerText);
+      }
+      rows.push(rowData);
+    }
+
+    // رسم جدول بسيط
+    let startY = 25;
+    rows.forEach((r, idx) => {
+      doc.text(r.join(" | "), 10, startY + (idx*8));
+    });
+
+    doc.save("workshops.pdf");
+  }
+</script>
+
+</body>
+</html>
