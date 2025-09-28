@@ -18,9 +18,7 @@
       text-align: center;
       color: #fff;
     }
-    header h1 {
-      margin: 0;
-    }
+    header h1 { margin: 0; }
     .container {
       max-width: 1100px;
       margin: 30px auto;
@@ -40,25 +38,15 @@
       margin-top: 20px;
       font-size: 14px;
     }
-    table, th, td {
-      border: 1px solid #ddd;
-    }
+    table, th, td { border: 1px solid #ddd; }
     th, td {
       padding: 8px;
       text-align: center;
+      vertical-align: top;
     }
-    th {
-      background: #004080;
-      color: #fff;
-    }
-    .reserved {
-      color: red;
-      font-weight: bold;
-    }
-    .available {
-      color: green;
-      font-weight: bold;
-    }
+    th { background: #004080; color: #fff; }
+    .reserved { color: red; font-weight: bold; }
+    .available { color: green; font-weight: bold; }
     button {
       padding: 6px 12px;
       background: linear-gradient(90deg,#cc0000,#800000);
@@ -67,20 +55,16 @@
       font-size: 13px;
       border-radius: 6px;
       cursor: pointer;
-      margin: 3px;
+      margin: 2px;
       transition: 0.3s;
     }
-    button:hover {
-      background: linear-gradient(90deg,#800000,#660000);
-    }
+    button:hover { background: linear-gradient(90deg,#800000,#660000); }
     .export-btn {
       background: linear-gradient(90deg,#0066cc,#004080);
       font-size: 14px;
       margin: 8px;
     }
-    .export-btn:hover {
-      background: linear-gradient(90deg,#004080,#003366);
-    }
+    .export-btn:hover { background: linear-gradient(90deg,#004080,#003366); }
   </style>
 </head>
 <body>
@@ -143,11 +127,32 @@
     snapshot.forEach((docSnap) => {
       const data = docSnap.data();
 
-      // صياغة التاريخ والوقت
-      let reservedAt = "";
-      if (data.reservedBy?.timestamp) {
-        const dateObj = data.reservedBy.timestamp.toDate ? data.reservedBy.timestamp.toDate() : new Date(data.reservedBy.timestamp);
-        reservedAt = dateObj.toLocaleDateString("ar-EG") + " - " + dateObj.toLocaleTimeString("ar-EG");
+      let names = "", emails = "", phones = "", orgs = "", abouts = "", reservedAt = "", actions = "";
+
+      if (Array.isArray(data.reservedBy)) {
+        data.reservedBy.forEach((r, idx) => {
+          names += (r.name || '') + "<br>";
+          emails += (r.email || '') + "<br>";
+          phones += (r.phone || '') + "<br>";
+          orgs += (r.organization || '') + "<br>";
+          abouts += (r.about || '') + "<br>";
+          if (r.timestamp) {
+            const dateObj = r.timestamp.toDate ? r.timestamp.toDate() : new Date(r.timestamp);
+            reservedAt += dateObj.toLocaleDateString("ar-EG") + " - " + dateObj.toLocaleTimeString("ar-EG") + "<br>";
+          }
+          actions += `<button onclick="cancelOne('${docSnap.id}', ${idx})">إلغاء ${r.name || ''}</button><br>`;
+        });
+      } else if (data.reservedBy) {
+        names = data.reservedBy?.name || '';
+        emails = data.reservedBy?.email || '';
+        phones = data.reservedBy?.phone || '';
+        orgs = data.reservedBy?.organization || '';
+        abouts = data.reservedBy?.about || '';
+        if (data.reservedBy?.timestamp) {
+          const dateObj = data.reservedBy.timestamp.toDate ? data.reservedBy.timestamp.toDate() : new Date(data.reservedBy.timestamp);
+          reservedAt = dateObj.toLocaleDateString("ar-EG") + " - " + dateObj.toLocaleTimeString("ar-EG");
+        }
+        actions = `<button onclick="cancelAll('${docSnap.id}')">إلغاء</button>`;
       }
 
       const row = document.createElement('tr');
@@ -157,32 +162,44 @@
         <td>${data.date || ''}</td>
         <td>${data.time || ''}</td>
         <td>${data.reserved ? '<span class="reserved">غير متوفر ❌</span>' : '<span class="available">متوفر ✅</span>'}</td>
-        <td>${data.reservedBy?.name || ''}</td>
-        <td>${data.reservedBy?.email || ''}</td>
-        <td>${data.reservedBy?.phone || ''}</td>
-        <td>${data.reservedBy?.organization || ''}</td>
-        <td>${data.reservedBy?.about || ''}</td>
-        <td>${reservedAt || ''}</td>
-        <td>${data.reserved ? `<button onclick="cancelReservation('${docSnap.id}')">إلغاء</button>` : ''}</td>
+        <td>${names}</td>
+        <td>${emails}</td>
+        <td>${phones}</td>
+        <td>${orgs}</td>
+        <td>${abouts}</td>
+        <td>${reservedAt}</td>
+        <td>${actions}</td>
       `;
       tbody.appendChild(row);
       i++;
     });
   });
 
-  // دالة إلغاء الحجز
-  window.cancelReservation = async function(id) {
+  // إلغاء حجز شخص واحد
+  window.cancelOne = async function(workshopId, index) {
     try {
-      const docRef = doc(db, "workshops", id);
-      await updateDoc(docRef, {
-        reserved: false,
-        reservedBy: {}
-      });
-      alert("✅ تم إلغاء الحجز وإعادة الورشة إلى حالة متوفر.");
+      const docRef = doc(db, "workshops", workshopId);
+      const snapshot = await (await import("https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js")).getDoc(docRef);
+      const data = snapshot.data();
+      let updated = [...data.reservedBy];
+      updated.splice(index, 1); // إزالة شخص واحد
+      await updateDoc(docRef, { reservedBy: updated, reserved: updated.length > 0 });
+      alert("✅ تم إلغاء الحجز للشخص المحدد.");
     } catch (e) {
-      alert("❌ خطأ أثناء إلغاء الحجز: " + e.message);
+      alert("❌ خطأ أثناء الإلغاء: " + e.message);
     }
-  }
+  };
+
+  // إلغاء جميع الحجوزات (للحالات القديمة)
+  window.cancelAll = async function(workshopId) {
+    try {
+      const docRef = doc(db, "workshops", workshopId);
+      await updateDoc(docRef, { reservedBy: [], reserved: false });
+      alert("✅ تم إلغاء جميع الحجوزات لهذه الورشة.");
+    } catch (e) {
+      alert("❌ خطأ أثناء الإلغاء: " + e.message);
+    }
+  };
 </script>
 
 <!-- مكتبة jsPDF -->
@@ -202,8 +219,8 @@
     for (let i=1; i<table.rows.length; i++) {
       const cells = table.rows[i].cells;
       let rowData = [];
-      for (let j=0; j<cells.length-1; j++) { // تجاهل عمود الإجراءات
-        rowData.push(cells[j].innerText);
+      for (let j=0; j<cells.length-1; j++) { 
+        rowData.push(cells[j].innerText.replace(/\n/g, " "));
       }
       rows.push(rowData);
     }
