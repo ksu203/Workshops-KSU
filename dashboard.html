@@ -18,7 +18,6 @@
       text-align: center;
       color: #fff;
     }
-    header h1 { margin: 0; }
     .container {
       max-width: 1100px;
       margin: 30px auto;
@@ -32,24 +31,44 @@
       margin-bottom: 20px;
       text-align: center;
     }
-    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-    table, th, td { border: 1px solid #ddd; }
-    th, td { padding: 10px; text-align: center; }
-    th { background: #004080; color: #fff; }
-    .reserved { color: red; font-weight: bold; }
-    .available { color: green; font-weight: bold; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    table, th, td {
+      border: 1px solid #ddd;
+    }
+    th, td {
+      padding: 10px;
+      text-align: center;
+    }
+    th {
+      background: #004080;
+      color: #fff;
+    }
+    .reserved {
+      color: red;
+      font-weight: bold;
+    }
+    .available {
+      color: green;
+      font-weight: bold;
+    }
     button {
-      padding: 8px 14px;
+      padding: 6px 12px;
       background: linear-gradient(90deg,#cc0000,#800000);
       border: none;
       color: #fff;
-      font-size: 14px;
-      border-radius: 8px;
+      font-size: 13px;
+      border-radius: 6px;
       cursor: pointer;
-      margin: 5px;
+      margin: 2px;
       transition: 0.3s;
     }
-    button:hover { background: linear-gradient(90deg,#800000,#660000); }
+    button:hover {
+      background: linear-gradient(90deg,#800000,#660000);
+    }
   </style>
 </head>
 <body>
@@ -68,8 +87,12 @@
         <th>التاريخ</th>
         <th>الوقت</th>
         <th>الحالة</th>
-        <th>المتقدمين</th>
-        <th>إجراء</th>
+        <th>الاسم</th>
+        <th>الإيميل</th>
+        <th>الجوال</th>
+        <th>الجهة</th>
+        <th>نبذة</th>
+        <th>تاريخ الحجز</th>
       </tr>
     </thead>
     <tbody id="workshops"></tbody>
@@ -78,7 +101,7 @@
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
-  import { getFirestore, collection, doc, updateDoc, onSnapshot } 
+  import { getFirestore, collection, onSnapshot } 
     from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
 
   const firebaseConfig = {
@@ -95,7 +118,7 @@
   const db = getFirestore(app);
   const workshopsRef = collection(db, "workshops");
 
-  // عرض الورش
+  // عرض الورش + دمج البيانات القديمة والجديدة
   onSnapshot(workshopsRef, (snapshot) => {
     const tbody = document.getElementById('workshops');
     tbody.innerHTML = "";
@@ -104,52 +127,58 @@
     snapshot.forEach((docSnap) => {
       const data = docSnap.data();
 
-      // تجهيز قائمة المتقدمين
-      let applicants = "";
-      if (Array.isArray(data.reservedBy) && data.reservedBy.length > 0) {
-        applicants = "<ul style='text-align:right;'>";
-        data.reservedBy.forEach(r => {
-          const dateObj = r.timestamp?.toDate ? r.timestamp.toDate() : new Date(r.timestamp);
-          const reservedAt = dateObj.toLocaleDateString("ar-EG") + " - " + dateObj.toLocaleTimeString("ar-EG");
-          applicants += `
-            <li>
-              👤 <b>${r.name}</b> | 📧 ${r.email} | 📱 ${r.phone} | 🏢 ${r.organization} 
-              <br>📝 ${r.about} 
-              <br>🕒 ${reservedAt}
-            </li><hr>`;
-        });
-        applicants += "</ul>";
-      } else {
-        applicants = "<span style='color:gray;'>لا يوجد متقدمين</span>";
+      // مصفوفة لتجميع جميع المتقدمين (قديم + جديد)
+      let applicants = [];
+
+      // إذا فيه reservedBy قديم (كائن واحد)
+      if (data.reservedBy && data.reservedBy.name) {
+        applicants.push(data.reservedBy);
       }
 
-      const row = document.createElement('tr');
-      row.innerHTML = `
-        <td>${i}</td>
-        <td>${data.title || ''}</td>
-        <td>${data.date || ''}</td>
-        <td>${data.time || ''}</td>
-        <td>${data.reservedBy?.length > 0 ? '<span class="reserved">محجوزة ❌</span>' : '<span class="available">متاحة ✅</span>'}</td>
-        <td>${applicants}</td>
-        <td><button onclick="cancelReservation('${docSnap.id}')">إلغاء الكل</button></td>
-      `;
-      tbody.appendChild(row);
-      i++;
+      // إذا فيه requests جديد (مصفوفة)
+      if (Array.isArray(data.requests)) {
+        applicants = applicants.concat(data.requests);
+      }
+
+      // إذا ما فيه أي متقدم
+      if (applicants.length === 0) {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${i}</td>
+          <td>${data.title || ''}</td>
+          <td>${data.date || ''}</td>
+          <td>${data.time || ''}</td>
+          <td><span class="available">متاح ✅</span></td>
+          <td colspan="6">لا يوجد متقدمين</td>
+        `;
+        tbody.appendChild(row);
+        i++;
+      } else {
+        // عرض كل المتقدمين
+        applicants.forEach((person, idx) => {
+          const dateObj = person.timestamp?.toDate ? person.timestamp.toDate() : new Date(person.timestamp || Date.now());
+          const reservedAt = dateObj ? dateObj.toLocaleDateString("ar-EG") + " - " + dateObj.toLocaleTimeString("ar-EG") : "";
+
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${idx === 0 ? i : ""}</td>
+            <td>${idx === 0 ? (data.title || '') : ""}</td>
+            <td>${idx === 0 ? (data.date || '') : ""}</td>
+            <td>${idx === 0 ? (data.time || '') : ""}</td>
+            <td>${idx === 0 ? (data.reserved || data.requests?.length ? '<span class="reserved">محجوز ❌</span>' : '<span class="available">متاح ✅</span>') : ""}</td>
+            <td>${person.name || ''}</td>
+            <td>${person.email || ''}</td>
+            <td>${person.phone || ''}</td>
+            <td>${person.organization || ''}</td>
+            <td>${person.about || ''}</td>
+            <td>${reservedAt}</td>
+          `;
+          tbody.appendChild(row);
+        });
+        i++;
+      }
     });
   });
-
-  // دالة إلغاء كل الحجوزات
-  window.cancelReservation = async function(id) {
-    try {
-      const docRef = doc(db, "workshops", id);
-      await updateDoc(docRef, {
-        reservedBy: []
-      });
-      alert("✅ تم إلغاء جميع الحجوزات لهذه الورشة.");
-    } catch (e) {
-      alert("❌ خطأ أثناء إلغاء الحجز: " + e.message);
-    }
-  }
 </script>
 
 </body>
