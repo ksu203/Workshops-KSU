@@ -10,12 +10,16 @@
       background: #f4f7fb;
       margin: 0;
       padding: 0;
+      color: #333;
     }
     header {
       background: linear-gradient(90deg, #004080, #0066cc);
       padding: 20px;
       text-align: center;
       color: #fff;
+    }
+    header h1 {
+      margin: 0;
     }
     .container {
       max-width: 1200px;
@@ -34,69 +38,39 @@
       width: 100%;
       border-collapse: collapse;
       margin-top: 20px;
-      border-radius: 8px;
-      overflow: hidden;
+      font-size: 14px;
     }
     table, th, td {
       border: 1px solid #ddd;
     }
     th, td {
-      padding: 12px;
+      padding: 10px;
       text-align: center;
-      font-size: 14px;
+      vertical-align: middle;
     }
     th {
       background: #004080;
       color: #fff;
     }
-    tr:nth-child(even) {
-      background: #f9f9f9;
-    }
     .reserved {
-      color: #d32f2f;
+      color: red;
       font-weight: bold;
     }
     .available {
-      color: #388e3c;
+      color: green;
       font-weight: bold;
-    }
-    .count {
-      font-weight: bold;
-      padding: 5px 10px;
-      border-radius: 8px;
-      display: inline-block;
-    }
-    .count.red { background: #ffcdd2; color: #b71c1c; }
-    .count.green { background: #c8e6c9; color: #1b5e20; }
-    .applicant-row {
-      background: #f0f8ff;
-      font-size: 13px;
-    }
-    .about-box {
-      max-height: 70px;
-      overflow-y: auto;
-      padding: 6px;
-      background: #fafafa;
-      border: 1px solid #ddd;
-      border-radius: 6px;
-      text-align: right;
     }
     button {
-      padding: 8px 14px;
+      padding: 6px 10px;
       background: linear-gradient(90deg,#cc0000,#800000);
       border: none;
       color: #fff;
       font-size: 13px;
-      border-radius: 8px;
+      border-radius: 6px;
       cursor: pointer;
-      margin: 3px;
     }
     button:hover {
       background: linear-gradient(90deg,#800000,#660000);
-    }
-    .export-btn {
-      background: #004080;
-      margin: 5px;
     }
   </style>
 </head>
@@ -107,11 +81,7 @@
 </header>
 
 <div class="container">
-  <h2>📋 قائمة الورش والمتقدمين</h2>
-  <div style="text-align:center">
-    <button class="export-btn" onclick="exportPDF()">📑 تصدير PDF</button>
-    <button class="export-btn" onclick="exportExcel()">📊 تصدير Excel</button>
-  </div>
+  <h2>📋 قائمة الورش والمشاركين</h2>
   <table id="workshopsTable">
     <thead>
       <tr>
@@ -134,9 +104,10 @@
   </table>
 </div>
 
+<!-- Firebase -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
-  import { getFirestore, collection, doc, updateDoc, onSnapshot } 
+  import { getFirestore, collection, doc, updateDoc, onSnapshot, getDoc } 
     from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
 
   const firebaseConfig = {
@@ -153,108 +124,95 @@
   const db = getFirestore(app);
   const workshopsRef = collection(db, "workshops");
 
-  // عرض الورش
+  // عرض الورش والمشاركين
   onSnapshot(workshopsRef, (snapshot) => {
     const tbody = document.getElementById('workshops');
     tbody.innerHTML = "";
     let i = 1;
     snapshot.forEach((docSnap) => {
       const data = docSnap.data();
+      let participants = [];
 
-      // جمع المتقدمين (requests + reservedBy)
-      let applicants = [];
-      if (Array.isArray(data.requests)) applicants.push(...data.requests);
-      if (data.reservedBy && data.reservedBy.name) applicants.push(data.reservedBy);
+      // المشاركين الجدد (requests كمصفوفة)
+      if (Array.isArray(data.requests)) {
+        participants = [...participants, ...data.requests];
+      }
 
-      const count = applicants.length;
+      // المشاركين القدامى (reservedBy كعنصر واحد)
+      if (data.reservedBy && Object.keys(data.reservedBy).length > 0) {
+        participants.push(data.reservedBy);
+      }
 
-      const mainRow = document.createElement('tr');
-      mainRow.innerHTML = `
-        <td>${i}</td>
-        <td>${data.title || ''}</td>
-        <td>${data.date || ''}</td>
-        <td>${data.time || ''}</td>
-        <td>${count > 0 ? '<span class="reserved">محجوز ❌</span>' : '<span class="available">متاح ✅</span>'}</td>
-        <td><span class="count ${count>0?'red':'green'}">${count}</span></td>
-        <td colspan="7">${count>0 ? 'انظر الصفوف بالأسفل 👇' : 'لا يوجد متقدمين'}</td>
-        <td>${count>0 ? `<button onclick="cancelReservation('${docSnap.id}')">إلغاء الكل</button>` : ''}</td>
-      `;
-      tbody.appendChild(mainRow);
+      // لو فيه مشاركين
+      if (participants.length > 0) {
+        participants.forEach((p, idx) => {
+          let reservedAt = "";
+          if (p.timestamp) {
+            const dateObj = p.timestamp.toDate ? p.timestamp.toDate() : new Date(p.timestamp);
+            reservedAt = dateObj.toLocaleDateString("ar-EG") + " - " + dateObj.toLocaleTimeString("ar-EG");
+          }
 
-      // إضافة المتقدمين كصفوف فرعية
-      applicants.forEach((a) => {
-        let reservedAt = "";
-        if (a.timestamp) {
-          const dateObj = a.timestamp.toDate ? a.timestamp.toDate() : new Date(a.timestamp);
-          reservedAt = dateObj.toLocaleDateString("ar-EG") + " - " + dateObj.toLocaleTimeString("ar-EG");
-        }
-        const subRow = document.createElement('tr');
-        subRow.className = "applicant-row";
-        subRow.innerHTML = `
-          <td colspan="6"></td>
-          <td>${a.name || ''}</td>
-          <td>${a.email || ''}</td>
-          <td>${a.phone || ''}</td>
-          <td>${a.organization || ''}</td>
-          <td><div class="about-box">${a.about || ''}</div></td>
-          <td>${reservedAt || ''}</td>
-          <td></td>
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${i}</td>
+            <td>${data.title || ''}</td>
+            <td>${data.date || ''}</td>
+            <td>${data.time || ''}</td>
+            <td><span class="reserved">محجوز ❌</span></td>
+            <td>${participants.length}</td>
+            <td>${p.name || ''}</td>
+            <td>${p.email || ''}</td>
+            <td>${p.phone || ''}</td>
+            <td>${p.organization || ''}</td>
+            <td>${p.about || ''}</td>
+            <td>${reservedAt || ''}</td>
+            <td><button onclick="deleteParticipant('${docSnap.id}', ${idx})">🗑️ حذف</button></td>
+          `;
+          tbody.appendChild(row);
+          i++;
+        });
+      } else {
+        // لا يوجد مشاركين
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${i}</td>
+          <td>${data.title || ''}</td>
+          <td>${data.date || ''}</td>
+          <td>${data.time || ''}</td>
+          <td><span class="available">متاح ✅</span></td>
+          <td>0</td>
+          <td colspan="7">لا يوجد متقدمين</td>
         `;
-        tbody.appendChild(subRow);
-      });
-
-      i++;
+        tbody.appendChild(row);
+        i++;
+      }
     });
   });
 
-  // دالة إلغاء الحجز
-  window.cancelReservation = async function(id) {
+  // حذف مشارك
+  window.deleteParticipant = async function(workshopId, participantIndex) {
     try {
-      const docRef = doc(db, "workshops", id);
-      await updateDoc(docRef, {
-        requests: [],
-        reservedBy: {}
-      });
-      alert("✅ تم إلغاء جميع الحجوزات.");
-    } catch (e) {
-      alert("❌ خطأ أثناء إلغاء الحجز: " + e.message);
-    }
-  }
-</script>
+      const workshopRef = doc(db, "workshops", workshopId);
+      const workshopSnap = await getDoc(workshopRef);
 
-<!-- مكتبة jsPDF -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<!-- مكتبة XLSX -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+      if (workshopSnap.exists()) {
+        let data = workshopSnap.data();
+        let requests = Array.isArray(data.requests) ? [...data.requests] : [];
 
-<script>
-  // تصدير PDF
-  async function exportPDF() {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({orientation: "landscape"});
-    doc.text("📋 قائمة ورش العمل", 140, 15, {align:"center"});
-    const table = document.getElementById("workshopsTable");
-    let rows = [];
-    for (let i=1; i<table.rows.length; i++) {
-      const cells = table.rows[i].cells;
-      let rowData = [];
-      for (let j=0; j<cells.length-1; j++) {
-        rowData.push(cells[j].innerText);
+        // إذا كان المشارك من reservedBy القديم
+        if (participantIndex >= requests.length && data.reservedBy) {
+          await updateDoc(workshopRef, { reservedBy: {} });
+        } else {
+          // حذف من المصفوفة requests
+          requests.splice(participantIndex, 1);
+          await updateDoc(workshopRef, { requests: requests });
+        }
+
+        alert("✅ تم حذف المشارك بنجاح.");
       }
-      rows.push(rowData);
+    } catch (e) {
+      alert("❌ خطأ أثناء الحذف: " + e.message);
     }
-    let startY = 25;
-    rows.forEach((r, idx) => {
-      doc.text(r.join(" | "), 10, startY + (idx*8));
-    });
-    doc.save("workshops.pdf");
-  }
-
-  // تصدير Excel
-  function exportExcel() {
-    const table = document.getElementById("workshopsTable");
-    const wb = XLSX.utils.table_to_book(table, { sheet: "ورش العمل" });
-    XLSX.writeFile(wb, "workshops.xlsx");
   }
 </script>
 
