@@ -18,9 +18,7 @@
       text-align: center;
       color: #fff;
     }
-    header h1 {
-      margin: 0;
-    }
+    header h1 { margin: 0; }
     .container {
       max-width: 1200px;
       margin: 30px auto;
@@ -40,9 +38,7 @@
       margin-top: 20px;
       font-size: 14px;
     }
-    table, th, td {
-      border: 1px solid #ddd;
-    }
+    table, th, td { border: 1px solid #ddd; }
     th, td {
       padding: 10px;
       text-align: center;
@@ -52,14 +48,8 @@
       background: #004080;
       color: #fff;
     }
-    .reserved {
-      color: red;
-      font-weight: bold;
-    }
-    .available {
-      color: green;
-      font-weight: bold;
-    }
+    .reserved { color: red; font-weight: bold; }
+    .available { color: green; font-weight: bold; }
     button {
       padding: 6px 10px;
       background: linear-gradient(90deg,#cc0000,#800000);
@@ -69,8 +59,16 @@
       border-radius: 6px;
       cursor: pointer;
     }
-    button:hover {
-      background: linear-gradient(90deg,#800000,#660000);
+    button:hover { background: linear-gradient(90deg,#800000,#660000); }
+    .export-buttons {
+      text-align: center;
+      margin-bottom: 15px;
+    }
+    .export-buttons button {
+      background: linear-gradient(90deg,#0066cc,#004080);
+      margin: 5px;
+      font-size: 14px;
+      border-radius: 8px;
     }
   </style>
 </head>
@@ -82,6 +80,12 @@
 
 <div class="container">
   <h2>📋 قائمة الورش والمشاركين</h2>
+
+  <div class="export-buttons">
+    <button onclick="exportExcel()">📊 تصدير Excel</button>
+    <button onclick="exportPDF()">📄 تصدير PDF</button>
+  </div>
+
   <table id="workshopsTable">
     <thead>
       <tr>
@@ -133,17 +137,9 @@
       const data = docSnap.data();
       let participants = [];
 
-      // المشاركين الجدد (requests كمصفوفة)
-      if (Array.isArray(data.requests)) {
-        participants = [...participants, ...data.requests];
-      }
+      if (Array.isArray(data.requests)) participants = [...participants, ...data.requests];
+      if (data.reservedBy && Object.keys(data.reservedBy).length > 0) participants.push(data.reservedBy);
 
-      // المشاركين القدامى (reservedBy كعنصر واحد)
-      if (data.reservedBy && Object.keys(data.reservedBy).length > 0) {
-        participants.push(data.reservedBy);
-      }
-
-      // لو فيه مشاركين
       if (participants.length > 0) {
         participants.forEach((p, idx) => {
           let reservedAt = "";
@@ -166,13 +162,14 @@
             <td>${p.organization || ''}</td>
             <td>${p.about || ''}</td>
             <td>${reservedAt || ''}</td>
-            <td><button onclick="deleteParticipant('${docSnap.id}', ${idx})">🗑️ حذف</button></td>
+            <td>
+              <button onclick="deleteParticipant('${docSnap.id}', ${idx})">🗑️ حذف</button>
+            </td>
           `;
           tbody.appendChild(row);
           i++;
         });
       } else {
-        // لا يوجد مشاركين
         const row = document.createElement('tr');
         row.innerHTML = `
           <td>${i}</td>
@@ -199,11 +196,9 @@
         let data = workshopSnap.data();
         let requests = Array.isArray(data.requests) ? [...data.requests] : [];
 
-        // إذا كان المشارك من reservedBy القديم
         if (participantIndex >= requests.length && data.reservedBy) {
           await updateDoc(workshopRef, { reservedBy: {} });
         } else {
-          // حذف من المصفوفة requests
           requests.splice(participantIndex, 1);
           await updateDoc(workshopRef, { requests: requests });
         }
@@ -213,6 +208,46 @@
     } catch (e) {
       alert("❌ خطأ أثناء الحذف: " + e.message);
     }
+  }
+</script>
+
+<!-- مكتبات التصدير -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<script>
+  // تصدير Excel
+  function exportExcel() {
+    const table = document.getElementById("workshopsTable");
+    const wb = XLSX.utils.table_to_book(table, { sheet: "ورش العمل" });
+    XLSX.writeFile(wb, "قائمة_ورش_العمل.xlsx");
+  }
+
+  // تصدير PDF
+  async function exportPDF() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation: "landscape" });
+    doc.setFont("helvetica", "bold");
+    doc.text("📋 تقرير ورش العمل والمشاركين", 150, 15, { align: "center" });
+
+    const table = document.getElementById("workshopsTable");
+    let rows = [];
+
+    for (let i = 1; i < table.rows.length; i++) {
+      const cells = table.rows[i].cells;
+      let rowData = [];
+      for (let j = 0; j < cells.length - 1; j++) { // تجاهل عمود الإجراءات
+        rowData.push(cells[j].innerText);
+      }
+      rows.push(rowData);
+    }
+
+    let y = 25;
+    rows.forEach((r, idx) => {
+      doc.text(r.join(" | "), 10, y + (idx * 8));
+    });
+
+    doc.save("تقرير_ورش_العمل.pdf");
   }
 </script>
 
