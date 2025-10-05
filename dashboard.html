@@ -20,7 +20,7 @@
     }
     header h1 { margin: 0; }
     .container {
-      max-width: 1200px;
+      max-width: 1250px;
       margin: 30px auto;
       background: #fff;
       padding: 25px;
@@ -50,16 +50,6 @@
     }
     .reserved { color: red; font-weight: bold; }
     .available { color: green; font-weight: bold; }
-    button {
-      padding: 6px 10px;
-      background: linear-gradient(90deg,#cc0000,#800000);
-      border: none;
-      color: #fff;
-      font-size: 13px;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-    button:hover { background: linear-gradient(90deg,#800000,#660000); }
     .export-buttons {
       text-align: center;
       margin-bottom: 15px;
@@ -69,6 +59,25 @@
       margin: 5px;
       font-size: 14px;
       border-radius: 8px;
+      color: #fff;
+      border: none;
+      padding: 8px 14px;
+      cursor: pointer;
+    }
+    .action-btn {
+      padding: 5px 8px;
+      border: none;
+      border-radius: 6px;
+      color: #fff;
+      cursor: pointer;
+      font-size: 12px;
+    }
+    .delete-btn {
+      background: linear-gradient(90deg,#cc0000,#800000);
+    }
+    .print-btn {
+      background: linear-gradient(90deg,#008000,#006400);
+      margin-right: 4px;
     }
   </style>
 </head>
@@ -93,7 +102,6 @@
         <th>العنوان</th>
         <th>التاريخ</th>
         <th>الوقت</th>
-        <th>الحالة</th>
         <th>عدد المتقدمين</th>
         <th>الاسم</th>
         <th>الإيميل</th>
@@ -101,7 +109,7 @@
         <th>الجهة</th>
         <th>نبذة</th>
         <th>تاريخ الحجز</th>
-        <th>إجراء</th>
+        <th>إجراءات</th>
       </tr>
     </thead>
     <tbody id="workshops"></tbody>
@@ -154,7 +162,6 @@
             <td>${data.title || ''}</td>
             <td>${data.date || ''}</td>
             <td>${data.time || ''}</td>
-            <td><span class="reserved">محجوز ❌</span></td>
             <td>${participants.length}</td>
             <td>${p.name || ''}</td>
             <td>${p.email || ''}</td>
@@ -163,52 +170,88 @@
             <td>${p.about || ''}</td>
             <td>${reservedAt || ''}</td>
             <td>
-              <button onclick="deleteParticipant('${docSnap.id}', ${idx})">🗑️ حذف</button>
+              <button class="print-btn action-btn" onclick='printAgreement(${JSON.stringify(p)}, "${data.title || ''}")'>🖨️ إقرار</button>
+              <button class="delete-btn action-btn" onclick="deleteParticipant('${docSnap.id}', ${idx})">🗑️ حذف</button>
             </td>
           `;
           tbody.appendChild(row);
           i++;
         });
-      } else {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-          <td>${i}</td>
-          <td>${data.title || ''}</td>
-          <td>${data.date || ''}</td>
-          <td>${data.time || ''}</td>
-          <td><span class="available">متاح ✅</span></td>
-          <td>0</td>
-          <td colspan="7">لا يوجد متقدمين</td>
-        `;
-        tbody.appendChild(row);
-        i++;
       }
     });
   });
 
   // حذف مشارك
   window.deleteParticipant = async function(workshopId, participantIndex) {
-    try {
-      const workshopRef = doc(db, "workshops", workshopId);
-      const workshopSnap = await getDoc(workshopRef);
-
-      if (workshopSnap.exists()) {
-        let data = workshopSnap.data();
-        let requests = Array.isArray(data.requests) ? [...data.requests] : [];
-
-        if (participantIndex >= requests.length && data.reservedBy) {
-          await updateDoc(workshopRef, { reservedBy: {} });
-        } else {
-          requests.splice(participantIndex, 1);
-          await updateDoc(workshopRef, { requests: requests });
-        }
-
-        alert("✅ تم حذف المشارك بنجاح.");
+    const workshopRef = doc(db, "workshops", workshopId);
+    const workshopSnap = await getDoc(workshopRef);
+    if (workshopSnap.exists()) {
+      let data = workshopSnap.data();
+      let requests = Array.isArray(data.requests) ? [...data.requests] : [];
+      if (participantIndex >= requests.length && data.reservedBy) {
+        await updateDoc(workshopRef, { reservedBy: {} });
+      } else {
+        requests.splice(participantIndex, 1);
+        await updateDoc(workshopRef, { requests: requests });
       }
-    } catch (e) {
-      alert("❌ خطأ أثناء الحذف: " + e.message);
+      alert("✅ تم حذف المشارك بنجاح.");
     }
   }
+
+  // طباعة الإقرار
+  window.printAgreement = function(participant, workshopTitle) {
+    const newWin = window.open("");
+    const now = new Date().toLocaleString("ar-EG");
+    newWin.document.write(`
+      <html lang="ar">
+      <head>
+        <meta charset="UTF-8">
+        <title>إقرار المشاركة</title>
+        <style>
+          body { font-family: 'Tahoma', sans-serif; direction: rtl; padding: 40px; }
+          .header { text-align: center; margin-bottom: 25px; }
+          img { width: 110px; }
+          h2 { color: #004080; }
+          .info { border: 1px solid #ccc; padding: 15px; border-radius: 8px; background: #f9f9f9; }
+          .info p { margin: 8px 0; }
+          .agreement { margin-top: 25px; line-height: 1.8; }
+          .footer { text-align: center; margin-top: 35px; font-weight: bold; color: #004080; }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/2/2f/Hadaf_logo.png" alt="شعار صندوق تنمية الموارد البشرية">
+          <h2>إقرار المشاركة في ورشة عمل</h2>
+          <h3>📘 ${workshopTitle}</h3>
+        </div>
+
+        <div class="info">
+          <p><strong>الاسم:</strong> ${participant.name || ''}</p>
+          <p><strong>المدينة:</strong> ${participant.city || ''}</p>
+          <p><strong>البريد الإلكتروني:</strong> ${participant.email || ''}</p>
+          <p><strong>رقم الجوال:</strong> ${participant.phone || ''}</p>
+          <p><strong>الجهة:</strong> ${participant.organization || ''}</p>
+          <p><strong>نبذة:</strong> ${participant.about || ''}</p>
+        </div>
+
+        <div class="agreement">
+          <p>
+            أقر بأنني قد قرأت جميع التعليمات والتوضيحات الخاصة بإعداد وتقديم ورش العمل في ملتقى الإرشاد المهني،
+            وأوافق على الالتزام بها التزامًا تامًا. كما أوافق على تصوير الورشة واستخدام محتواها في أي من المنصات
+            الإعلامية الخاصة بالملتقى أو الشركاء المنظمين دون أي التزام مالي أو قانوني تجاه إدارة الملتقى.
+          </p>
+          <p><strong>تاريخ الإقرار الإلكتروني:</strong> ${now}</p>
+        </div>
+
+        <div class="footer">
+          تمنياتنا لكم بالتوفيق والسداد<br>صندوق تنمية الموارد البشرية
+        </div>
+      </body>
+      </html>
+    `);
+    newWin.print();
+    newWin.close();
+  };
 </script>
 
 <!-- مكتبات التصدير -->
@@ -229,24 +272,20 @@
     const doc = new jsPDF({ orientation: "landscape" });
     doc.setFont("helvetica", "bold");
     doc.text("📋 تقرير ورش العمل والمشاركين", 150, 15, { align: "center" });
-
     const table = document.getElementById("workshopsTable");
     let rows = [];
-
     for (let i = 1; i < table.rows.length; i++) {
       const cells = table.rows[i].cells;
       let rowData = [];
-      for (let j = 0; j < cells.length - 1; j++) { // تجاهل عمود الإجراءات
+      for (let j = 0; j < cells.length - 1; j++) {
         rowData.push(cells[j].innerText);
       }
       rows.push(rowData);
     }
-
     let y = 25;
     rows.forEach((r, idx) => {
       doc.text(r.join(" | "), 10, y + (idx * 8));
     });
-
     doc.save("تقرير_ورش_العمل.pdf");
   }
 </script>
