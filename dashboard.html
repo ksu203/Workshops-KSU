@@ -5,7 +5,7 @@
   <title>لوحة التحكم - ورش العمل</title>
   <style>
     body {
-      font-family: "SST Arabic", "Tahoma", sans-serif;
+      font-family: "Tahoma", sans-serif;
       direction: rtl;
       background: #f4f7fb;
       margin: 0;
@@ -18,8 +18,9 @@
       text-align: center;
       color: #fff;
     }
+    header h1 { margin: 0; }
     .container {
-      max-width: 1250px;
+      max-width: 1200px;
       margin: 30px auto;
       background: #fff;
       padding: 25px;
@@ -28,105 +29,37 @@
     }
     h2 {
       color: #004080;
-      margin-bottom: 10px;
-      text-align: center;
-    }
-    .summary {
-      text-align: center;
       margin-bottom: 20px;
-      font-size: 16px;
-      color: #0066cc;
-      font-weight: bold;
-    }
-    .export-buttons {
       text-align: center;
-      margin-bottom: 15px;
-    }
-    .export-buttons button {
-      background: linear-gradient(90deg,#0066cc,#004080);
-      border: none;
-      color: #fff;
-      padding: 10px 16px;
-      border-radius: 8px;
-      margin: 5px;
-      cursor: pointer;
-      transition: 0.3s;
-      font-size: 14px;
-    }
-    .export-buttons button:hover {
-      transform: scale(1.05);
-      background: linear-gradient(90deg,#004080,#002a60);
     }
     table {
       width: 100%;
       border-collapse: collapse;
-      margin-top: 10px;
+      margin-top: 20px;
       font-size: 14px;
     }
     table, th, td { border: 1px solid #ddd; }
+    th, td {
+      padding: 10px;
+      text-align: center;
+      vertical-align: middle;
+    }
     th {
       background: #004080;
       color: #fff;
-      padding: 10px;
-      text-align: center;
-    }
-    td {
-      text-align: center;
-      padding: 8px;
-    }
-    tr.unreserved {
-      background: #f2f2f2;
-      color: #555;
     }
     .reserved { color: red; font-weight: bold; }
     .available { color: green; font-weight: bold; }
-    button.action {
-      padding: 5px 8px;
+    button {
+      padding: 6px 10px;
       background: linear-gradient(90deg,#cc0000,#800000);
       border: none;
       color: #fff;
-      font-size: 12px;
+      font-size: 13px;
       border-radius: 6px;
       cursor: pointer;
     }
-    button.view-about {
-      background: #004080;
-    }
-    button.view-about:hover {
-      background: #002a60;
-    }
-
-    /* نافذة منبثقة */
-    .modal {
-      display: none;
-      position: fixed;
-      z-index: 999;
-      left: 0;
-      top: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.5);
-      justify-content: center;
-      align-items: center;
-    }
-    .modal-content {
-      background: #fff;
-      padding: 20px;
-      border-radius: 10px;
-      width: 450px;
-      max-height: 80%;
-      overflow-y: auto;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-      text-align: right;
-      direction: rtl;
-    }
-    .close {
-      float: left;
-      color: #aaa;
-      font-size: 22px;
-      cursor: pointer;
-    }
-    .close:hover { color: #000; }
+    button:hover { background: linear-gradient(90deg,#800000,#660000); }
   </style>
 </head>
 <body>
@@ -137,13 +70,6 @@
 
 <div class="container">
   <h2>📋 قائمة الورش والمشاركين</h2>
-
-  <div class="summary" id="summary">الورش المحجوزة: 0</div>
-
-  <div class="export-buttons">
-    <button onclick="exportExcel()">📊 تصدير Excel</button>
-    <button onclick="exportPDF()">📄 تصدير PDF</button>
-  </div>
 
   <table id="workshopsTable">
     <thead>
@@ -160,25 +86,17 @@
         <th>الجهة</th>
         <th>نبذة</th>
         <th>تاريخ الحجز</th>
+        <th>إجراء</th>
       </tr>
     </thead>
     <tbody id="workshops"></tbody>
   </table>
 </div>
 
-<!-- نافذة عرض النبذة -->
-<div id="aboutModal" class="modal">
-  <div class="modal-content">
-    <span class="close" onclick="document.getElementById('aboutModal').style.display='none'">&times;</span>
-    <h3 style="color:#004080;">🧾 نبذة عن المشارك</h3>
-    <p id="aboutText" style="line-height:1.8; color:#333;"></p>
-  </div>
-</div>
-
 <!-- Firebase -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
-  import { getFirestore, collection, doc, onSnapshot } 
+  import { getFirestore, collection, doc, updateDoc, onSnapshot, getDoc } 
     from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
 
   const firebaseConfig = {
@@ -195,22 +113,25 @@
   const db = getFirestore(app);
   const workshopsRef = collection(db, "workshops");
 
+  // عرض الورش والمشاركين
   onSnapshot(workshopsRef, (snapshot) => {
     const tbody = document.getElementById('workshops');
     tbody.innerHTML = "";
-    let totalReserved = 0;
     let i = 1;
-
+    
     snapshot.forEach((docSnap) => {
       const data = docSnap.data();
       let participants = [];
 
-      if (Array.isArray(data.requests)) participants = [...participants, ...data.requests];
-      if (data.reservedBy && Object.keys(data.reservedBy).length > 0) participants.push(data.reservedBy);
+      // المشاركين الجدد (requests)
+      if (Array.isArray(data.requests)) participants = [...data.requests];
+      // المشاركين القدامى (reservedBy)
+      if (data.reservedBy && Object.keys(data.reservedBy).length > 0)
+        participants.push(data.reservedBy);
 
+      // ✅ في حال وجود مشاركين
       if (participants.length > 0) {
-        totalReserved++;
-        participants.forEach((p) => {
+        participants.forEach((p, idx) => {
           let reservedAt = "";
           if (p.timestamp) {
             const dateObj = p.timestamp.toDate ? p.timestamp.toDate() : new Date(p.timestamp);
@@ -229,15 +150,18 @@
             <td>${p.email || ''}</td>
             <td>${p.phone || ''}</td>
             <td>${p.organization || ''}</td>
-            <td><button class="view-about" onclick="showAbout('${(p.about || '').replace(/'/g, "\\'")}')">عرض</button></td>
-            <td>${reservedAt}</td>
+            <td>${p.about || ''}</td>
+            <td>${reservedAt || ''}</td>
+            <td><button onclick="deleteParticipant('${docSnap.id}', ${idx})">🗑️ حذف</button></td>
           `;
           tbody.appendChild(row);
           i++;
         });
-      } else {
+      } 
+      // ✅ في حال عدم وجود مشاركين (ورشة غير محجوزة)
+      else {
         const row = document.createElement('tr');
-        row.classList.add("unreserved");
+        row.style.backgroundColor = "#f7f7f7";
         row.innerHTML = `
           <td>${i}</td>
           <td>${data.title || ''}</td>
@@ -245,61 +169,36 @@
           <td>${data.time || ''}</td>
           <td><span class="available">متاح ✅</span></td>
           <td>0</td>
-          <td colspan="6">لا يوجد متقدمين بعد</td>
+          <td colspan="7">لا يوجد متقدمين بعد</td>
         `;
         tbody.appendChild(row);
         i++;
       }
     });
-
-    document.getElementById("summary").textContent = `📊 عدد الورش المحجوزة: ${totalReserved}`;
   });
 
-  window.showAbout = function(text) {
-    const modal = document.getElementById("aboutModal");
-    document.getElementById("aboutText").innerText = text || "لا توجد نبذة متاحة.";
-    modal.style.display = "flex";
-  };
-</script>
+  // حذف مشارك
+  window.deleteParticipant = async function(workshopId, participantIndex) {
+    try {
+      const workshopRef = doc(db, "workshops", workshopId);
+      const workshopSnap = await getDoc(workshopRef);
 
-<!-- مكتبات التصدير -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+      if (workshopSnap.exists()) {
+        let data = workshopSnap.data();
+        let requests = Array.isArray(data.requests) ? [...data.requests] : [];
 
-<script>
-  // تصدير Excel
-  function exportExcel() {
-    const table = document.getElementById("workshopsTable");
-    const wb = XLSX.utils.table_to_book(table, { sheet: "ورش العمل" });
-    XLSX.writeFile(wb, "تقرير_ورش_العمل.xlsx");
-  }
+        if (participantIndex >= requests.length && data.reservedBy) {
+          await updateDoc(workshopRef, { reservedBy: {} });
+        } else {
+          requests.splice(participantIndex, 1);
+          await updateDoc(workshopRef, { requests: requests });
+        }
 
-  // تصدير PDF بخط عربي
-  async function exportPDF() {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({ orientation: "landscape" });
-    doc.addFileToVFS("SSTArabic.ttf", ""); // يمكن لاحقًا إضافة الخط فعليًا هنا
-    doc.setFont("helvetica", "normal");
-    doc.text("📋 تقرير ورش العمل والمشاركين", 150, 15, { align: "center" });
-
-    const table = document.getElementById("workshopsTable");
-    let rows = [];
-    for (let i = 1; i < table.rows.length; i++) {
-      const cells = table.rows[i].cells;
-      let rowData = [];
-      for (let j = 0; j < cells.length; j++) {
-        rowData.push(cells[j].innerText);
+        alert("✅ تم حذف المشارك بنجاح.");
       }
-      rows.push(rowData.join(" | "));
+    } catch (e) {
+      alert("❌ خطأ أثناء الحذف: " + e.message);
     }
-
-    let y = 25;
-    rows.forEach((r, idx) => {
-      doc.text(r, 10, y + idx * 7);
-    });
-
-    doc.save("تقرير_ورش_العمل.pdf");
   }
 </script>
 
