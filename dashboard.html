@@ -18,117 +18,115 @@
       text-align: center;
       color: #fff;
     }
-    header h1 { margin: 0; }
-
-    .stats {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 15px;
-      margin: 25px auto;
-      max-width: 1100px;
-    }
-    .stat-box {
-      flex: 1 1 180px;
-      background: #fff;
-      border-radius: 12px;
-      padding: 15px;
-      text-align: center;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      transition: 0.3s;
-    }
-    .stat-box:hover { transform: scale(1.03); }
-    .stat-box h3 { margin: 5px 0; font-size: 18px; }
-    .stat-box p { font-size: 24px; font-weight: bold; margin: 0; }
-    .total { border-top: 5px solid #999; }
-    .reserved { border-top: 5px solid #28a745; }
-    .unreserved { border-top: 5px solid #ff9800; }
-    .assigned { border-top: 5px solid #007bff; }
-    .need-trainer { border-top: 5px solid #dc3545; }
-
     .container {
-      max-width: 1200px;
+      max-width: 1250px;
       margin: 30px auto;
       background: #fff;
       padding: 25px;
       border-radius: 15px;
       box-shadow: 0 4px 15px rgba(0,0,0,0.1);
     }
-    h2 { color: #004080; margin-bottom: 15px; text-align: center; }
+    h2 {
+      color: #004080;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+    .summary {
+      text-align: center;
+      margin-bottom: 20px;
+      font-size: 16px;
+      color: #0066cc;
+      font-weight: bold;
+    }
     .export-buttons {
       text-align: center;
       margin-bottom: 15px;
     }
     .export-buttons button {
       background: linear-gradient(90deg,#0066cc,#004080);
-      color: #fff;
       border: none;
-      padding: 8px 15px;
-      font-size: 14px;
+      color: #fff;
+      padding: 10px 16px;
       border-radius: 8px;
       margin: 5px;
       cursor: pointer;
+      transition: 0.3s;
+      font-size: 14px;
     }
-    .export-buttons button:hover { background: linear-gradient(90deg,#004080,#003060); }
-
+    .export-buttons button:hover {
+      transform: scale(1.05);
+      background: linear-gradient(90deg,#004080,#002a60);
+    }
     table {
       width: 100%;
       border-collapse: collapse;
       margin-top: 10px;
-      font-size: 13px;
+      font-size: 14px;
     }
     table, th, td { border: 1px solid #ddd; }
-    th, td {
-      padding: 8px;
+    th {
+      background: #004080;
+      color: #fff;
+      padding: 10px;
       text-align: center;
-      vertical-align: middle;
     }
-    th { background: #004080; color: #fff; }
-    tr:nth-child(even) { background: #f9f9f9; }
-
+    td {
+      text-align: center;
+      padding: 8px;
+    }
+    tr.unreserved {
+      background: #f2f2f2;
+      color: #555;
+    }
     .reserved { color: red; font-weight: bold; }
     .available { color: green; font-weight: bold; }
-
     button.action {
-      padding: 5px 10px;
+      padding: 5px 8px;
+      background: linear-gradient(90deg,#cc0000,#800000);
       border: none;
-      border-radius: 6px;
-      cursor: pointer;
       color: #fff;
       font-size: 12px;
+      border-radius: 6px;
+      cursor: pointer;
     }
-    .delete-btn { background: #b30000; }
-    .approve-btn { background: #007bff; }
-    .about-btn { background: #ff9800; }
+    button.view-about {
+      background: #004080;
+    }
+    button.view-about:hover {
+      background: #002a60;
+    }
 
     /* نافذة منبثقة */
     .modal {
       display: none;
       position: fixed;
-      z-index: 1000;
-      left: 0; top: 0;
-      width: 100%; height: 100%;
-      background-color: rgba(0,0,0,0.6);
-      backdrop-filter: blur(4px);
+      z-index: 999;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      justify-content: center;
+      align-items: center;
     }
     .modal-content {
       background: #fff;
-      margin: 10% auto;
       padding: 20px;
-      border-radius: 12px;
-      width: 90%;
-      max-width: 500px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+      border-radius: 10px;
+      width: 450px;
+      max-height: 80%;
+      overflow-y: auto;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
       text-align: right;
+      direction: rtl;
     }
     .close {
-      color: #333;
       float: left;
-      font-size: 20px;
+      color: #aaa;
+      font-size: 22px;
       cursor: pointer;
-      font-weight: bold;
     }
-    .close:hover { color: red; }
+    .close:hover { color: #000; }
   </style>
 </head>
 <body>
@@ -137,17 +135,11 @@
   <h1>لوحة التحكم - ورش العمل</h1>
 </header>
 
-<!-- العدادات -->
-<div class="stats">
-  <div class="stat-box total"><h3>إجمالي الورش</h3><p id="totalCount">0</p></div>
-  <div class="stat-box reserved"><h3>الورش المحجوزة</h3><p id="reservedCount">0</p></div>
-  <div class="stat-box unreserved"><h3>الورش غير المحجوزة</h3><p id="unreservedCount">0</p></div>
-  <div class="stat-box assigned"><h3>الورش المعتمدة</h3><p id="assignedCount">0</p></div>
-  <div class="stat-box need-trainer"><h3>ورش بلا مدربين</h3><p id="needTrainerCount">0</p></div>
-</div>
-
 <div class="container">
   <h2>📋 قائمة الورش والمشاركين</h2>
+
+  <div class="summary" id="summary">الورش المحجوزة: 0</div>
+
   <div class="export-buttons">
     <button onclick="exportExcel()">📊 تصدير Excel</button>
     <button onclick="exportPDF()">📄 تصدير PDF</button>
@@ -168,7 +160,6 @@
         <th>الجهة</th>
         <th>نبذة</th>
         <th>تاريخ الحجز</th>
-        <th>إجراء</th>
       </tr>
     </thead>
     <tbody id="workshops"></tbody>
@@ -178,20 +169,16 @@
 <!-- نافذة عرض النبذة -->
 <div id="aboutModal" class="modal">
   <div class="modal-content">
-    <span class="close" onclick="closeModal()">&times;</span>
-    <h3>📄 تفاصيل المدرب</h3>
-    <p><strong>الاسم:</strong> <span id="modalName"></span></p>
-    <p><strong>المدينة:</strong> <span id="modalCity"></span></p>
-    <p><strong>الجهة:</strong> <span id="modalOrg"></span></p>
-    <p><strong>النبذة:</strong></p>
-    <p id="modalAbout" style="white-space: pre-wrap; background:#f9f9f9; padding:10px; border-radius:8px;"></p>
+    <span class="close" onclick="document.getElementById('aboutModal').style.display='none'">&times;</span>
+    <h3 style="color:#004080;">🧾 نبذة عن المشارك</h3>
+    <p id="aboutText" style="line-height:1.8; color:#333;"></p>
   </div>
 </div>
 
 <!-- Firebase -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
-  import { getFirestore, collection, doc, updateDoc, onSnapshot, getDoc } 
+  import { getFirestore, collection, doc, onSnapshot } 
     from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
 
   const firebaseConfig = {
@@ -208,119 +195,110 @@
   const db = getFirestore(app);
   const workshopsRef = collection(db, "workshops");
 
-  // عرض الورش والمشاركين
   onSnapshot(workshopsRef, (snapshot) => {
     const tbody = document.getElementById('workshops');
     tbody.innerHTML = "";
+    let totalReserved = 0;
     let i = 1;
-    let total = 0, reserved = 0, unreserved = 0, assigned = 0, needTrainer = 0;
 
     snapshot.forEach((docSnap) => {
       const data = docSnap.data();
-      total++;
-
       let participants = [];
+
       if (Array.isArray(data.requests)) participants = [...participants, ...data.requests];
       if (data.reservedBy && Object.keys(data.reservedBy).length > 0) participants.push(data.reservedBy);
 
-      if (participants.length > 0) reserved++;
-      else unreserved++;
+      if (participants.length > 0) {
+        totalReserved++;
+        participants.forEach((p) => {
+          let reservedAt = "";
+          if (p.timestamp) {
+            const dateObj = p.timestamp.toDate ? p.timestamp.toDate() : new Date(p.timestamp);
+            reservedAt = dateObj.toLocaleDateString("ar-EG") + " - " + dateObj.toLocaleTimeString("ar-EG");
+          }
 
-      participants.forEach((p, idx) => {
-        const reservedAt = p.timestamp ? 
-          (p.timestamp.toDate ? p.timestamp.toDate().toLocaleString("ar-EG") : new Date(p.timestamp).toLocaleString("ar-EG")) : "";
-
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${i}</td>
+            <td>${data.title || ''}</td>
+            <td>${data.date || ''}</td>
+            <td>${data.time || ''}</td>
+            <td><span class="reserved">محجوز ❌</span></td>
+            <td>${participants.length}</td>
+            <td>${p.name || ''}</td>
+            <td>${p.email || ''}</td>
+            <td>${p.phone || ''}</td>
+            <td>${p.organization || ''}</td>
+            <td><button class="view-about" onclick="showAbout('${(p.about || '').replace(/'/g, "\\'")}')">عرض</button></td>
+            <td>${reservedAt}</td>
+          `;
+          tbody.appendChild(row);
+          i++;
+        });
+      } else {
         const row = document.createElement('tr');
+        row.classList.add("unreserved");
         row.innerHTML = `
           <td>${i}</td>
           <td>${data.title || ''}</td>
           <td>${data.date || ''}</td>
           <td>${data.time || ''}</td>
-          <td><span class="${participants.length>0?'reserved':'available'}">${participants.length>0?'محجوز ❌':'متاح ✅'}</span></td>
-          <td>${participants.length}</td>
-          <td>${p.name || ''}</td>
-          <td>${p.email || ''}</td>
-          <td>${p.phone || ''}</td>
-          <td>${p.organization || ''}</td>
-          <td><button class="action about-btn" onclick="showAbout('${p.name}','${p.city||''}','${p.organization||''}','${p.about||''}')">👁️ عرض</button></td>
-          <td>${reservedAt}</td>
-          <td>
-            <button class="action approve-btn" onclick="approveTrainer('${p.name}','${data.title}')">✅ اعتماد</button>
-            <button class="action delete-btn" onclick="deleteParticipant('${docSnap.id}', ${idx})">🗑️ حذف</button>
-          </td>
+          <td><span class="available">متاح ✅</span></td>
+          <td>0</td>
+          <td colspan="6">لا يوجد متقدمين بعد</td>
         `;
         tbody.appendChild(row);
         i++;
-      });
+      }
     });
 
-    document.getElementById("totalCount").textContent = total;
-    document.getElementById("reservedCount").textContent = reserved;
-    document.getElementById("unreservedCount").textContent = unreserved;
-    document.getElementById("assignedCount").textContent = assigned;
-    document.getElementById("needTrainerCount").textContent = unreserved;
+    document.getElementById("summary").textContent = `📊 عدد الورش المحجوزة: ${totalReserved}`;
   });
 
-  // حذف مشارك
-  window.deleteParticipant = async function(workshopId, participantIndex) {
-    const workshopRef = doc(db, "workshops", workshopId);
-    const workshopSnap = await getDoc(workshopRef);
-    if (workshopSnap.exists()) {
-      const data = workshopSnap.data();
-      const requests = Array.isArray(data.requests) ? [...data.requests] : [];
-      if (participantIndex >= requests.length && data.reservedBy) await updateDoc(workshopRef, { reservedBy: {} });
-      else { requests.splice(participantIndex, 1); await updateDoc(workshopRef, { requests: requests }); }
-      alert("✅ تم حذف المشارك بنجاح.");
-    }
+  window.showAbout = function(text) {
+    const modal = document.getElementById("aboutModal");
+    document.getElementById("aboutText").innerText = text || "لا توجد نبذة متاحة.";
+    modal.style.display = "flex";
   };
-
-  // اعتماد المدرب
-  window.approveTrainer = function(name, title) {
-    alert(`✅ تم اعتماد المدرب "${name}" لتقديم ورشة "${title}".`);
-  };
-
-  // عرض النافذة المنبثقة
-  window.showAbout = function(name, city, org, about) {
-    document.getElementById("modalName").textContent = name;
-    document.getElementById("modalCity").textContent = city;
-    document.getElementById("modalOrg").textContent = org;
-    document.getElementById("modalAbout").textContent = about;
-    document.getElementById("aboutModal").style.display = "block";
-  };
-  window.closeModal = function() { document.getElementById("aboutModal").style.display = "none"; };
 </script>
 
 <!-- مكتبات التصدير -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+
 <script>
   // تصدير Excel
   function exportExcel() {
     const table = document.getElementById("workshopsTable");
     const wb = XLSX.utils.table_to_book(table, { sheet: "ورش العمل" });
-    XLSX.writeFile(wb, "قائمة_ورش_العمل.xlsx");
+    XLSX.writeFile(wb, "تقرير_ورش_العمل.xlsx");
   }
 
-  // تصدير PDF بخط SST Arabic
+  // تصدير PDF بخط عربي
   async function exportPDF() {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF({ orientation: "landscape" });
-    doc.setFont("helvetica", "bold");
+    doc.addFileToVFS("SSTArabic.ttf", ""); // يمكن لاحقًا إضافة الخط فعليًا هنا
+    doc.setFont("helvetica", "normal");
     doc.text("📋 تقرير ورش العمل والمشاركين", 150, 15, { align: "center" });
+
     const table = document.getElementById("workshopsTable");
     let rows = [];
     for (let i = 1; i < table.rows.length; i++) {
       const cells = table.rows[i].cells;
       let rowData = [];
-      for (let j = 0; j < cells.length - 1; j++) {
+      for (let j = 0; j < cells.length; j++) {
         rowData.push(cells[j].innerText);
       }
-      rows.push(rowData);
+      rows.push(rowData.join(" | "));
     }
+
     let y = 25;
     rows.forEach((r, idx) => {
-      doc.text(r.join(" | "), 10, y + (idx * 8));
+      doc.text(r, 10, y + idx * 7);
     });
+
     doc.save("تقرير_ورش_العمل.pdf");
   }
 </script>
