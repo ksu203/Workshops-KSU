@@ -43,8 +43,6 @@
     .total { border-top: 5px solid #999; }
     .reserved { border-top: 5px solid #28a745; }
     .unreserved { border-top: 5px solid #ff9800; }
-    .assigned { border-top: 5px solid #007bff; }
-    .need-trainer { border-top: 5px solid #dc3545; }
 
     .container {
       max-width: 1200px;
@@ -221,8 +219,19 @@
       if (Array.isArray(data.requests)) participants = [...participants, ...data.requests];
       if (data.reservedBy && Object.keys(data.reservedBy).length > 0) participants.push(data.reservedBy);
 
-      if (participants.length > 0) {
+      // ✅ حالة الورشة (محجوزة / متاحة / مغلقة)
+      let statusHTML = "";
+      if (data.bookingClosed) {
+        statusHTML = `<span class="reserved" style="color:#b30000;font-weight:bold;">الحجز مغلق 🚫</span>`;
+      } else if (participants.length > 0) {
+        statusHTML = `<span class="reserved">محجوز ❌</span>`;
         reserved++;
+      } else {
+        statusHTML = `<span class="available">متاح ✅</span>`;
+        unreserved++;
+      }
+
+      if (participants.length > 0) {
         participants.forEach((p, idx) => {
           const reservedAt = p.timestamp ? 
             (p.timestamp.toDate ? p.timestamp.toDate().toLocaleString("ar-EG") : new Date(p.timestamp).toLocaleString("ar-EG")) : "";
@@ -233,7 +242,7 @@
             <td>${data.title || ''}</td>
             <td>${data.date || ''}</td>
             <td>${data.time || ''}</td>
-            <td><span class="reserved">محجوز ❌</span></td>
+            <td>${statusHTML}</td>
             <td>${participants.length}</td>
             <td>${p.name || ''}</td>
             <td>${p.email || ''}</td>
@@ -247,7 +256,6 @@
           i++;
         });
       } else {
-        unreserved++;
         const row = document.createElement('tr');
         row.style.backgroundColor = "#f5f5f5";
         row.innerHTML = `
@@ -255,7 +263,7 @@
           <td>${data.title || ''}</td>
           <td>${data.date || ''}</td>
           <td>${data.time || ''}</td>
-          <td><span class="available">متاح ✅</span></td>
+          <td>${statusHTML}</td>
           <td>0</td>
           <td colspan="7">لا يوجد متقدمين بعد</td>
         `;
