@@ -111,7 +111,6 @@
     .approve-btn { background: #007bff; }
     .about-btn { background: #ff9800; }
 
-    /* نافذة منبثقة */
     .modal {
       display: none;
       position: fixed;
@@ -139,6 +138,16 @@
       font-weight: bold;
     }
     .close:hover { color: red; }
+
+    ul.participant-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    ul.participant-list li {
+      padding: 4px 0;
+      border-bottom: 1px solid #eee;
+    }
   </style>
 </head>
 <body>
@@ -147,7 +156,6 @@
   <h1>لوحة التحكم - ورش العمل</h1>
 </header>
 
-<!-- العدادات -->
 <div class="stats">
   <div class="stat-box total"><h3>إجمالي الورش</h3><p id="totalCount">0</p></div>
   <div class="stat-box reserved"><h3>الورش المحجوزة</h3><p id="reservedCount">0</p></div>
@@ -157,7 +165,6 @@
 <div class="container">
   <h2>📋 قائمة الورش والمشاركين</h2>
 
-  <!-- الفلتر -->
   <div class="filter-bar">
     <label>🔍 فلترة الورش:</label>
     <select id="filterSelect" onchange="applyFilter()">
@@ -165,6 +172,7 @@
       <option value="most">الورشة الأكثر حجزًا</option>
       <option value="more3">ورش بها أكثر من 3 متقدمين</option>
       <option value="less3">ورش بها 3 أو أقل</option>
+      <option value="none">الورش التي لا يوجد لها متقدم</option>
     </select>
   </div>
 
@@ -182,20 +190,13 @@
         <th>الوقت</th>
         <th>الحالة</th>
         <th>عدد المتقدمين</th>
-        <th>الاسم</th>
-        <th>الإيميل</th>
-        <th>الجوال</th>
-        <th>الجهة</th>
-        <th>نبذة</th>
-        <th>تاريخ الحجز</th>
-        <th>إجراء</th>
+        <th>المتقدمون</th>
       </tr>
     </thead>
     <tbody id="workshops"></tbody>
   </table>
 </div>
 
-<!-- نافذة عرض النبذة -->
 <div id="aboutModal" class="modal">
   <div class="modal-content">
     <span class="close" onclick="closeModal()">&times;</span>
@@ -208,215 +209,176 @@
   </div>
 </div>
 
-<!-- Firebase -->
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
-  import { getFirestore, collection, doc, updateDoc, onSnapshot, getDoc } 
-    from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
+import { getFirestore, collection, doc, updateDoc, onSnapshot, getDoc } 
+  from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyCC5Wea1ccPTVNo8nfe2fSv7s6JIKulXTc",
-    authDomain: "reservation-system-492d6.firebaseapp.com",
-    projectId: "reservation-system-492d6",
-    storageBucket: "reservation-system-492d6.appspot.com",
-    messagingSenderId: "982147661254",
-    appId: "1:982147661254:web:47606a698bd01b5b0746c7",
-    measurementId: "G-J3BQB3M68D"
-  };
+const firebaseConfig = {
+  apiKey: "AIzaSyCC5Wea1ccPTVNo8nfe2fSv7s6JIKulXTc",
+  authDomain: "reservation-system-492d6.firebaseapp.com",
+  projectId: "reservation-system-492d6",
+  storageBucket: "reservation-system-492d6.appspot.com",
+  messagingSenderId: "982147661254",
+  appId: "1:982147661254:web:47606a698bd01b5b0746c7",
+  measurementId: "G-J3BQB3M68D"
+};
 
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-  const workshopsRef = collection(db, "workshops");
-  let workshopsData = [];
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const workshopsRef = collection(db, "workshops");
+let workshopsData = [];
 
-  // عرض الورش مع حفظ البيانات
-  onSnapshot(workshopsRef, (snapshot) => {
-    workshopsData = [];
-    const tbody = document.getElementById('workshops');
-    tbody.innerHTML = "";
-    let i = 1, total = 0, reserved = 0, unreserved = 0;
+// 🔹 عرض الورش
+onSnapshot(workshopsRef, (snapshot) => {
+  workshopsData = [];
+  let total = snapshot.size, reserved = 0, unreserved = 0;
 
-    snapshot.forEach((docSnap) => {
-      const data = docSnap.data();
-      total++;
+  snapshot.forEach((docSnap) => {
+    const data = docSnap.data();
+    const hasTrainer = data.reservedBy && Object.keys(data.reservedBy).length > 0;
+    if (hasTrainer) reserved++; else unreserved++;
 
-      let participants = [];
-      if (Array.isArray(data.requests)) participants = [...participants, ...data.requests];
-      if (data.reservedBy && Object.keys(data.reservedBy).length > 0) participants.push(data.reservedBy);
+    let participants = [];
+    if (Array.isArray(data.requests)) participants = [...participants, ...data.requests];
+    if (hasTrainer) participants.push(data.reservedBy);
 
-      workshopsData.push({
-        id: docSnap.id,
-        title: data.title,
-        date: data.date,
-        time: data.time,
-        participants,
-        bookingClosed: data.bookingClosed || false,
-        reservedBy: data.reservedBy || {}
-      });
+    workshopsData.push({
+      id: docSnap.id,
+      title: data.title,
+      date: data.date,
+      time: data.time,
+      participants,
+      bookingClosed: data.bookingClosed || false,
+      reservedBy: data.reservedBy || {}
     });
-
-    renderTable(workshopsData);
   });
 
-  // إنشاء الجدول
-  function renderTable(dataList) {
-    const tbody = document.getElementById('workshops');
-    tbody.innerHTML = "";
-    let i = 1, total = 0, reserved = 0, unreserved = 0;
+  document.getElementById("totalCount").textContent = total;
+  document.getElementById("reservedCount").textContent = reserved;
+  document.getElementById("unreservedCount").textContent = unreserved;
 
-    dataList.forEach((data) => {
-      total++;
-      const participants = data.participants || [];
+  renderTable(workshopsData);
+});
 
-      let statusHTML = "";
-      if (data.bookingClosed)
-        statusHTML = `<span class="reserved" style="color:#b30000;font-weight:bold;">الحجز مغلق 🚫</span>`;
-      else if (Object.keys(data.reservedBy || {}).length > 0) {
-        statusHTML = `<span class="reserved">محجوز ❌</span>`;
-        reserved++;
-      } else {
-        statusHTML = `<span class="available">متاح ✅</span>`;
-        unreserved++;
-      }
+// 🔹 إنشاء الجدول
+function renderTable(dataList) {
+  const tbody = document.getElementById("workshops");
+  tbody.innerHTML = "";
+  let i = 1;
+  dataList.forEach((data) => {
+    const hasTrainer = data.reservedBy && Object.keys(data.reservedBy).length > 0;
+    const statusHTML = data.bookingClosed
+      ? `<span style='color:#b30000;font-weight:bold;'>الحجز مغلق 🚫</span>`
+      : hasTrainer ? `<span class='reserved'>محجوز ❌</span>` : `<span class='available'>متاح ✅</span>`;
+    const participants = data.participants || [];
 
-      if (participants.length > 0) {
-        participants.forEach((p, idx) => {
-          const reservedAt = p.timestamp ? 
-            (p.timestamp.toDate ? p.timestamp.toDate().toLocaleString("ar-EG") : new Date(p.timestamp).toLocaleString("ar-EG")) : "";
-          const isConfirmed = (data.reservedBy && data.reservedBy.email === p.email);
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td>${i}</td>
+      <td>${data.title || ""}</td>
+      <td>${data.date || ""}</td>
+      <td>${data.time || ""}</td>
+      <td>${statusHTML}</td>
+      <td>${participants.length}</td>
+      <td>
+        ${
+          participants.length > 0
+            ? `<ul class='participant-list'>${participants
+                .map(
+                  (p, idx) =>
+                    `<li>
+                      ${p.name || "بدون اسم"} 
+                      <button class='action about-btn' onclick="showAbout('${p.name}','${p.city||''}','${p.organization||''}','${p.about||''}')">👁️</button>
+                      ${
+                        data.reservedBy && data.reservedBy.email === p.email
+                          ? `<button class='action delete-btn' onclick="cancelApproval('${data.id}')">❌</button>`
+                          : `<button class='action approve-btn' onclick="approveTrainer('${data.id}', ${idx})">✅</button>`
+                      }
+                      <button class='action delete-btn' onclick="deleteParticipant('${data.id}', ${idx})">🗑️</button>
+                    </li>`
+                )
+                .join("")}</ul>`
+            : "<em>لا يوجد متقدمين</em>"
+        }
+      </td>`;
+    tbody.appendChild(row);
+    i++;
+  });
+}
 
-          const row = document.createElement('tr');
-          row.innerHTML = `
-            <td>${i}</td>
-            <td>${data.title}</td>
-            <td>${data.date}</td>
-            <td>${data.time}</td>
-            <td>${statusHTML}</td>
-            <td>${participants.length}</td>
-            <td>${p.name || ''}</td>
-            <td>${p.email || ''}</td>
-            <td>${p.phone || ''}</td>
-            <td>${p.organization || ''}</td>
-            <td><button class="action about-btn" onclick="showAbout('${p.name}','${p.city||''}','${p.organization||''}','${p.about||''}')">👁️ عرض</button></td>
-            <td>${reservedAt}</td>
-            <td>
-              ${isConfirmed 
-                ? `<button class="action delete-btn" onclick="cancelApproval('${data.id}')">❌ إلغاء التأكيد</button>` 
-                : `<button class="action approve-btn" onclick="approveTrainer('${data.id}', ${idx})">✅ تأكيد</button>`}
-              <button class="action delete-btn" onclick="deleteParticipant('${data.id}', ${idx})">🗑️ حذف</button>
-            </td>
-          `;
-          tbody.appendChild(row);
-          i++;
-        });
-      } else {
-        const row = document.createElement('tr');
-        row.style.backgroundColor = "#f5f5f5";
-        row.innerHTML = `
-          <td>${i}</td>
-          <td>${data.title}</td>
-          <td>${data.date}</td>
-          <td>${data.time}</td>
-          <td>${statusHTML}</td>
-          <td>0</td>
-          <td colspan="7">لا يوجد متقدمين بعد</td>
-        `;
-        tbody.appendChild(row);
-        i++;
-      }
-    });
+// ✅ تأكيد المدرب
+window.approveTrainer = async function (workshopId, participantIndex) {
+  const ref = doc(db, "workshops", workshopId);
+  const snap = await getDoc(ref);
+  if (!snap.exists()) return alert("❌ لم يتم العثور على الورشة.");
 
-    document.getElementById("totalCount").textContent = total;
-    document.getElementById("reservedCount").textContent = reserved;
-    document.getElementById("unreservedCount").textContent = unreserved;
+  const data = snap.data();
+  const requests = Array.isArray(data.requests) ? [...data.requests] : [];
+  const confirmed = data.reservedBy && Object.keys(data.reservedBy).length > 0;
+  if (confirmed) {
+    const existingName = data.reservedBy.name || "مدرب آخر";
+    alert(`⚠️ لا يمكن تأكيد أكثر من مدرب لهذه الورشة.\nتم تأكيد ${existingName} مسبقًا.`);
+    return;
   }
 
-  // ✅ تأكيد المدرب
-  window.approveTrainer = async function (workshopId, participantIndex) {
-    const workshopRef = doc(db, "workshops", workshopId);
-    const workshopSnap = await getDoc(workshopRef);
-    if (!workshopSnap.exists()) return alert("❌ لم يتم العثور على الورشة.");
+  const selected = requests[participantIndex];
+  if (!selected) return alert("❌ لم يتم العثور على بيانات المتقدم.");
+  await updateDoc(ref, { reservedBy: selected });
+  requests.splice(participantIndex, 1);
+  await updateDoc(ref, { requests });
+  alert(`✅ تم تأكيد ${selected.name || "المتقدم"} كمدرب.`);
+};
 
-    const data = workshopSnap.data();
-    const requests = Array.isArray(data.requests) ? [...data.requests] : [];
-    const confirmedTrainer = data.reservedBy && Object.keys(data.reservedBy).length > 0;
+// ❌ إلغاء التأكيد
+window.cancelApproval = async function (id) {
+  const ref = doc(db, "workshops", id);
+  const snap = await getDoc(ref);
+  if (!snap.exists()) return alert("❌ لم يتم العثور على الورشة.");
+  const data = snap.data();
+  const reservedBy = data.reservedBy || {};
+  if (!Object.keys(reservedBy).length) return alert("⚠️ لا يوجد مدرب مؤكد.");
 
-    if (confirmedTrainer) {
-      const existingName = data.reservedBy.name || "مدرب آخر";
-      alert(`⚠️ لا يمكن تأكيد أكثر من مدرب لهذه الورشة.\nتم تأكيد ${existingName} مسبقًا.`);
-      return;
-    }
+  const requests = Array.isArray(data.requests) ? [...data.requests, reservedBy] : [reservedBy];
+  await updateDoc(ref, { reservedBy: {}, requests });
+  alert(`🚫 تم إلغاء تأكيد ${reservedBy.name || "المدرب"}.`);
+};
 
-    const selected = requests[participantIndex];
-    if (!selected) return alert("❌ لم يتم العثور على بيانات المتقدم.");
+// 🗑️ حذف مشارك
+window.deleteParticipant = async function (id, idx) {
+  const ref = doc(db, "workshops", id);
+  const snap = await getDoc(ref);
+  if (snap.exists()) {
+    const data = snap.data();
+    const req = Array.isArray(data.requests) ? [...data.requests] : [];
+    if (idx >= req.length && data.reservedBy) await updateDoc(ref, { reservedBy: {} });
+    else { req.splice(idx, 1); await updateDoc(ref, { requests: req }); }
+    alert("✅ تم حذف المشارك بنجاح.");
+  }
+};
 
-    await updateDoc(workshopRef, { reservedBy: selected });
-    requests.splice(participantIndex, 1);
-    await updateDoc(workshopRef, { requests });
-    alert(`✅ تم تأكيد ${selected.name || "المتقدم"} كمدرب لهذه الورشة.`);
-  };
+// 🔍 الفلاتر
+window.applyFilter = function () {
+  const f = document.getElementById("filterSelect").value;
+  let list = [...workshopsData];
+  if (f === "most") {
+    const max = Math.max(...list.map(w => w.participants.length));
+    list = list.filter(w => w.participants.length === max);
+  } else if (f === "more3") list = list.filter(w => w.participants.length > 3);
+  else if (f === "less3") list = list.filter(w => w.participants.length <= 3);
+  else if (f === "none") list = list.filter(w => w.participants.length === 0);
+  renderTable(list);
+};
 
-  // 🔁 إلغاء التأكيد
-  window.cancelApproval = async function (workshopId) {
-    const workshopRef = doc(db, "workshops", workshopId);
-    const workshopSnap = await getDoc(workshopRef);
-    if (!workshopSnap.exists()) return alert("❌ لم يتم العثور على الورشة.");
-
-    const data = workshopSnap.data();
-    const reservedBy = data.reservedBy || {};
-    if (Object.keys(reservedBy).length === 0) return alert("⚠️ لا يوجد مدرب مؤكد لإلغائه.");
-
-    const requests = Array.isArray(data.requests) ? [...data.requests, reservedBy] : [reservedBy];
-    await updateDoc(workshopRef, { reservedBy: {}, requests });
-    alert(`🚫 تم إلغاء تأكيد ${reservedBy.name || "المدرب"} وإعادته إلى قائمة المتقدمين.`);
-  };
-
-  // 🗑️ حذف مشارك
-  window.deleteParticipant = async function(workshopId, participantIndex) {
-    const workshopRef = doc(db, "workshops", workshopId);
-    const workshopSnap = await getDoc(workshopRef);
-    if (workshopSnap.exists()) {
-      const data = workshopSnap.data();
-      const requests = Array.isArray(data.requests) ? [...data.requests] : [];
-      if (participantIndex >= requests.length && data.reservedBy) await updateDoc(workshopRef, { reservedBy: {} });
-      else { requests.splice(participantIndex, 1); await updateDoc(workshopRef, { requests }); }
-      alert("✅ تم حذف المشارك بنجاح.");
-    }
-  };
-
-  // فلترة الورش
-  window.applyFilter = function () {
-    const filter = document.getElementById("filterSelect").value;
-    let filtered = [...workshopsData];
-
-    if (filter === "most") {
-      const maxCount = Math.max(...filtered.map(w => w.participants.length));
-      filtered = filtered.filter(w => w.participants.length === maxCount);
-    } else if (filter === "more3") {
-      filtered = filtered.filter(w => w.participants.length > 3);
-    } else if (filter === "less3") {
-      filtered = filtered.filter(w => w.participants.length <= 3);
-    }
-
-    renderTable(filtered);
-  };
-
-  // عرض النافذة المنبثقة
-  window.showAbout = function(name, city, org, about) {
-    document.getElementById("modalName").textContent = name;
-    document.getElementById("modalCity").textContent = city;
-    document.getElementById("modalOrg").textContent = org;
-    document.getElementById("modalAbout").textContent = about;
-    document.getElementById("aboutModal").style.display = "block";
-  };
-  window.closeModal = function() { document.getElementById("aboutModal").style.display = "none"; };
+// 👁️ عرض النبذة
+window.showAbout = function(name, city, org, about) {
+  document.getElementById("modalName").textContent = name;
+  document.getElementById("modalCity").textContent = city;
+  document.getElementById("modalOrg").textContent = org;
+  document.getElementById("modalAbout").textContent = about;
+  document.getElementById("aboutModal").style.display = "block";
+};
+window.closeModal = function() {
+  document.getElementById("aboutModal").style.display = "none";
+};
 </script>
-
-<!-- مكتبات التصدير -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script>
-  function exportExcel() {
-    const table = document.getElementById("workshopsTable");
-    const wb = XLSX.utils.table_to_book(table, { sheet: "ورش العمل" });
-    XLSX.writeFile(wb, "قائمة_ورش_
