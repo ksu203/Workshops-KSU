@@ -1,215 +1,333 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <title>لوحة التحكم - ورش العمل</title>
+  <style>
+    body {
+      font-family: "SST Arabic", "Tahoma", sans-serif;
+      direction: rtl;
+      background: #f4f7fb;
+      margin: 0;
+      padding: 0;
+      color: #333;
+    }
+    header {
+      background: linear-gradient(90deg, #004080, #0066cc);
+      padding: 20px;
+      text-align: center;
+      color: #fff;
+    }
+    header h1 { margin: 0; }
+
+    .stats {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 15px;
+      margin: 25px auto;
+      max-width: 1100px;
+    }
+    .stat-box {
+      flex: 1 1 180px;
+      background: #fff;
+      border-radius: 12px;
+      padding: 15px;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      transition: 0.3s;
+    }
+    .stat-box:hover { transform: scale(1.03); }
+    .stat-box h3 { margin: 5px 0; font-size: 18px; }
+    .stat-box p { font-size: 24px; font-weight: bold; margin: 0; }
+    .total { border-top: 5px solid #999; }
+    .reserved { border-top: 5px solid #28a745; }
+    .unreserved { border-top: 5px solid #ff9800; }
+
+    .container {
+      max-width: 1200px;
+      margin: 30px auto;
+      background: #fff;
+      padding: 25px;
+      border-radius: 15px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    h2 { color: #004080; margin-bottom: 15px; text-align: center; }
+    .export-buttons {
+      text-align: center;
+      margin-bottom: 15px;
+    }
+    .export-buttons button {
+      background: linear-gradient(90deg,#0066cc,#004080);
+      color: #fff;
+      border: none;
+      padding: 8px 15px;
+      font-size: 14px;
+      border-radius: 8px;
+      margin: 5px;
+      cursor: pointer;
+    }
+    .export-buttons button:hover { background: linear-gradient(90deg,#004080,#003060); }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      font-size: 13px;
+    }
+    table, th, td { border: 1px solid #ddd; }
+    th, td {
+      padding: 8px;
+      text-align: center;
+      vertical-align: middle;
+    }
+    th { background: #004080; color: #fff; }
+    tr:nth-child(even) { background: #f9f9f9; }
+
+    .reserved { color: red; font-weight: bold; }
+    .available { color: green; font-weight: bold; }
+
+    button.action {
+      padding: 5px 10px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      color: #fff;
+      font-size: 12px;
+    }
+    .delete-btn { background: #b30000; }
+    .approve-btn { background: #007bff; }
+    .about-btn { background: #ff9800; }
+
+    /* نافذة منبثقة */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0; top: 0;
+      width: 100%; height: 100%;
+      background-color: rgba(0,0,0,0.6);
+      backdrop-filter: blur(4px);
+    }
+    .modal-content {
+      background: #fff;
+      margin: 10% auto;
+      padding: 20px;
+      border-radius: 12px;
+      width: 90%;
+      max-width: 500px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+      text-align: right;
+    }
+    .close {
+      color: #333;
+      float: left;
+      font-size: 20px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .close:hover { color: red; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>لوحة التحكم - ورش العمل</h1>
+</header>
+
+<!-- العدادات -->
+<div class="stats">
+  <div class="stat-box total"><h3>إجمالي الورش</h3><p id="totalCount">0</p></div>
+  <div class="stat-box reserved"><h3>الورش المحجوزة</h3><p id="reservedCount">0</p></div>
+  <div class="stat-box unreserved"><h3>الورش غير المحجوزة</h3><p id="unreservedCount">0</p></div>
+</div>
+
+<div class="container">
+  <h2>📋 قائمة الورش والمشاركين</h2>
+  <div class="export-buttons">
+    <button onclick="exportExcel()">📊 تصدير Excel</button>
+    <button onclick="exportPDF()">📄 تصدير PDF</button>
+  </div>
+
+  <table id="workshopsTable">
+    <thead>
+      <tr>
+        <th>م</th>
+        <th>العنوان</th>
+        <th>التاريخ</th>
+        <th>الوقت</th>
+        <th>الحالة</th>
+        <th>عدد المتقدمين</th>
+        <th>الاسم</th>
+        <th>الإيميل</th>
+        <th>الجوال</th>
+        <th>الجهة</th>
+        <th>نبذة</th>
+        <th>تاريخ الحجز</th>
+        <th>إجراء</th>
+      </tr>
+    </thead>
+    <tbody id="workshops"></tbody>
+  </table>
+</div>
+
+<!-- نافذة عرض النبذة -->
+<div id="aboutModal" class="modal">
+  <div class="modal-content">
+    <span class="close" onclick="closeModal()">&times;</span>
+    <h3>📄 تفاصيل المدرب</h3>
+    <p><strong>الاسم:</strong> <span id="modalName"></span></p>
+    <p><strong>المدينة:</strong> <span id="modalCity"></span></p>
+    <p><strong>الجهة:</strong> <span id="modalOrg"></span></p>
+    <p><strong>النبذة:</strong></p>
+    <p id="modalAbout" style="white-space: pre-wrap; background:#f9f9f9; padding:10px; border-radius:8px;"></p>
+  </div>
+</div>
+
+<!-- Firebase -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
   import { getFirestore, collection, doc, updateDoc, onSnapshot, getDoc } 
     from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
 
-  // ننتظر تحميل الصفحة بالكامل قبل تشغيل أي كود
-  window.addEventListener("DOMContentLoaded", () => {
+  const firebaseConfig = {
+    apiKey: "AIzaSyCC5Wea1ccPTVNo8nfe2fSv7s6JIKulXTc",
+    authDomain: "reservation-system-492d6.firebaseapp.com",
+    projectId: "reservation-system-492d6",
+    storageBucket: "reservation-system-492d6.appspot.com",
+    messagingSenderId: "982147661254",
+    appId: "1:982147661254:web:47606a698bd01b5b0746c7",
+    measurementId: "G-J3BQB3M68D"
+  };
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyCC5Wea1ccPTVNo8nfe2fSv7s6JIKulXTc",
-      authDomain: "reservation-system-492d6.firebaseapp.com",
-      projectId: "reservation-system-492d6",
-      storageBucket: "reservation-system-492d6.appspot.com",
-      messagingSenderId: "982147661254",
-      appId: "1:982147661254:web:47606a698bd01b5b0746c7",
-      measurementId: "G-J3BQB3M68D"
-    };
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const workshopsRef = collection(db, "workshops");
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const workshopsRef = collection(db, "workshops");
-    let workshopsData = [];
+  // عرض الورش
+  onSnapshot(workshopsRef, (snapshot) => {
+    const tbody = document.getElementById('workshops');
+    tbody.innerHTML = "";
+    let i = 1;
+    let total = 0, reserved = 0, unreserved = 0;
 
-    // 🔹 فلترة الورش
-    window.applyFilter = function () {
-      const filter = document.getElementById("filterSelect").value;
-      const tbody = document.getElementById("workshops");
-      if (!tbody) return;
-      tbody.innerHTML = "";
+    snapshot.forEach((docSnap) => {
+      const data = docSnap.data();
+      total++;
 
-      let filtered = [...workshopsData];
+      let participants = [];
+      if (Array.isArray(data.requests)) participants = [...participants, ...data.requests];
+      if (data.reservedBy && Object.keys(data.reservedBy).length > 0) participants.push(data.reservedBy);
 
-      if (filter === "most") {
-        const maxCount = Math.max(...filtered.map(w => w.participants.length));
-        filtered = filtered.filter(w => w.participants.length === maxCount);
-      } else if (filter === "more3") {
-        filtered = filtered.filter(w => w.participants.length > 3);
-      } else if (filter === "less3") {
-        filtered = filtered.filter(w => w.participants.length <= 3);
+      // ✅ حالة الورشة (محجوزة / متاحة / مغلقة)
+      let statusHTML = "";
+      if (data.bookingClosed) {
+        statusHTML = `<span class="reserved" style="color:#b30000;font-weight:bold;">الحجز مغلق 🚫</span>`;
+      } else if (participants.length > 0) {
+        statusHTML = `<span class="reserved">محجوز ❌</span>`;
+        reserved++;
+      } else {
+        statusHTML = `<span class="available">متاح ✅</span>`;
+        unreserved++;
       }
 
-      renderTable(filtered);
-    };
+      if (participants.length > 0) {
+        participants.forEach((p, idx) => {
+          const reservedAt = p.timestamp ? 
+            (p.timestamp.toDate ? p.timestamp.toDate().toLocaleString("ar-EG") : new Date(p.timestamp).toLocaleString("ar-EG")) : "";
 
-    // 🔹 عرض البيانات من Firebase
-    onSnapshot(workshopsRef, (snapshot) => {
-      workshopsData = [];
-      snapshot.forEach((docSnap) => {
-        const data = docSnap.data();
-        let participants = [];
-        if (Array.isArray(data.requests)) participants = [...participants, ...data.requests];
-        if (data.reservedBy && Object.keys(data.reservedBy).length > 0) participants.push(data.reservedBy);
-
-        workshopsData.push({
-          id: docSnap.id,
-          title: data.title || '',
-          date: data.date || '',
-          time: data.time || '',
-          participants,
-          bookingClosed: data.bookingClosed || false,
-          reservedBy: data.reservedBy || {}
-        });
-      });
-
-      renderTable(workshopsData);
-    });
-
-    // 🔹 إنشاء الجدول
-    function renderTable(dataList) {
-      const tbody = document.getElementById("workshops");
-      if (!tbody) return;
-      tbody.innerHTML = "";
-      let i = 1, total = 0, reserved = 0, unreserved = 0;
-
-      dataList.forEach((data) => {
-        total++;
-        const participants = data.participants || [];
-
-        let statusHTML = "";
-        if (data.bookingClosed)
-          statusHTML = `<span class="reserved" style="color:#b30000;font-weight:bold;">الحجز مغلق 🚫</span>`;
-        else if (Object.keys(data.reservedBy || {}).length > 0) {
-          statusHTML = `<span class="reserved">محجوز ❌</span>`;
-          reserved++;
-        } else {
-          statusHTML = `<span class="available">متاح ✅</span>`;
-          unreserved++;
-        }
-
-        if (participants.length > 0) {
-          participants.forEach((p, idx) => {
-            const reservedAt = p.timestamp ?
-              (p.timestamp.toDate ? p.timestamp.toDate().toLocaleString("ar-EG") : new Date(p.timestamp).toLocaleString("ar-EG")) : "";
-            const isConfirmed = (data.reservedBy && data.reservedBy.email === p.email);
-
-            const row = document.createElement("tr");
-            row.innerHTML = `
-              <td>${i}</td>
-              <td>${data.title}</td>
-              <td>${data.date}</td>
-              <td>${data.time}</td>
-              <td>${statusHTML}</td>
-              <td>${participants.length}</td>
-              <td>${p.name || ""}</td>
-              <td>${p.email || ""}</td>
-              <td>${p.phone || ""}</td>
-              <td>${p.organization || ""}</td>
-              <td><button class="action about-btn" onclick="showAbout('${p.name}','${p.city||''}','${p.organization||''}','${p.about||''}')">👁️ عرض</button></td>
-              <td>${reservedAt}</td>
-              <td>
-                ${isConfirmed 
-                  ? `<button class="action delete-btn" onclick="cancelApproval('${data.id}')">❌ إلغاء التأكيد</button>` 
-                  : `<button class="action approve-btn" onclick="approveTrainer('${data.id}', ${idx})">✅ تأكيد</button>`
-                }
-                <button class="action delete-btn" onclick="deleteParticipant('${data.id}', ${idx})">🗑️ حذف</button>
-              </td>
-            `;
-            tbody.appendChild(row);
-            i++;
-          });
-        } else {
-          const row = document.createElement("tr");
-          row.style.backgroundColor = "#f5f5f5";
+          const row = document.createElement('tr');
           row.innerHTML = `
             <td>${i}</td>
-            <td>${data.title}</td>
-            <td>${data.date}</td>
-            <td>${data.time}</td>
+            <td>${data.title || ''}</td>
+            <td>${data.date || ''}</td>
+            <td>${data.time || ''}</td>
             <td>${statusHTML}</td>
-            <td>0</td>
-            <td colspan="7">لا يوجد متقدمين بعد</td>
+            <td>${participants.length}</td>
+            <td>${p.name || ''}</td>
+            <td>${p.email || ''}</td>
+            <td>${p.phone || ''}</td>
+            <td>${p.organization || ''}</td>
+            <td><button class="action about-btn" onclick="showAbout('${p.name}','${p.city||''}','${p.organization||''}','${p.about||''}')">👁️ عرض</button></td>
+            <td>${reservedAt}</td>
+            <td><button class="action delete-btn" onclick="deleteParticipant('${docSnap.id}', ${idx})">🗑️ حذف</button></td>
           `;
           tbody.appendChild(row);
           i++;
-        }
-      });
-
-      document.getElementById("totalCount").textContent = total;
-      document.getElementById("reservedCount").textContent = reserved;
-      document.getElementById("unreservedCount").textContent = unreserved;
-    }
-
-    // 🗑️ حذف مشارك
-    window.deleteParticipant = async function(workshopId, participantIndex) {
-      const workshopRef = doc(db, "workshops", workshopId);
-      const workshopSnap = await getDoc(workshopRef);
-      if (workshopSnap.exists()) {
-        const data = workshopSnap.data();
-        const requests = Array.isArray(data.requests) ? [...data.requests] : [];
-        if (participantIndex >= requests.length && data.reservedBy)
-          await updateDoc(workshopRef, { reservedBy: {} });
-        else {
-          requests.splice(participantIndex, 1);
-          await updateDoc(workshopRef, { requests });
-        }
-        alert("✅ تم حذف المشارك بنجاح.");
+        });
+      } else {
+        const row = document.createElement('tr');
+        row.style.backgroundColor = "#f5f5f5";
+        row.innerHTML = `
+          <td>${i}</td>
+          <td>${data.title || ''}</td>
+          <td>${data.date || ''}</td>
+          <td>${data.time || ''}</td>
+          <td>${statusHTML}</td>
+          <td>0</td>
+          <td colspan="7">لا يوجد متقدمين بعد</td>
+        `;
+        tbody.appendChild(row);
+        i++;
       }
-    };
+    });
 
-    // ✅ تأكيد المدرب
-    window.approveTrainer = async function (workshopId, participantIndex) {
-      const workshopRef = doc(db, "workshops", workshopId);
-      const workshopSnap = await getDoc(workshopRef);
+    document.getElementById("totalCount").textContent = total;
+    document.getElementById("reservedCount").textContent = reserved;
+    document.getElementById("unreservedCount").textContent = unreserved;
+  });
 
-      if (!workshopSnap.exists()) return alert("❌ لم يتم العثور على الورشة.");
-
+  // حذف مشارك
+  window.deleteParticipant = async function(workshopId, participantIndex) {
+    const workshopRef = doc(db, "workshops", workshopId);
+    const workshopSnap = await getDoc(workshopRef);
+    if (workshopSnap.exists()) {
       const data = workshopSnap.data();
       const requests = Array.isArray(data.requests) ? [...data.requests] : [];
-      const confirmedTrainer = data.reservedBy && Object.keys(data.reservedBy).length > 0;
+      if (participantIndex >= requests.length && data.reservedBy) await updateDoc(workshopRef, { reservedBy: {} });
+      else { requests.splice(participantIndex, 1); await updateDoc(workshopRef, { requests: requests }); }
+      alert("✅ تم حذف المشارك بنجاح.");
+    }
+  };
 
-      if (confirmedTrainer) {
-        const existingName = data.reservedBy.name || "مدرب آخر";
-        alert(`⚠️ لا يمكن تأكيد أكثر من مدرب لهذه الورشة.\nتم تأكيد ${existingName} مسبقًا.`);
-        return;
-      }
-
-      const selected = requests[participantIndex];
-      if (!selected) return alert("❌ لم يتم العثور على بيانات المتقدم.");
-
-      await updateDoc(workshopRef, { reservedBy: selected });
-      requests.splice(participantIndex, 1);
-      await updateDoc(workshopRef, { requests });
-
-      alert(`✅ تم تأكيد ${selected.name || "المتقدم"} كمدرب لهذه الورشة بنجاح.`);
-    };
-
-    // 🔁 إلغاء التأكيد
-    window.cancelApproval = async function (workshopId) {
-      const workshopRef = doc(db, "workshops", workshopId);
-      const workshopSnap = await getDoc(workshopRef);
-      if (!workshopSnap.exists()) return alert("❌ لم يتم العثور على الورشة.");
-
-      const data = workshopSnap.data();
-      const reservedBy = data.reservedBy || {};
-
-      if (Object.keys(reservedBy).length === 0)
-        return alert("⚠️ لا يوجد مدرب مؤكد لإلغائه.");
-
-      const requests = Array.isArray(data.requests) ? [...data.requests, reservedBy] : [reservedBy];
-      await updateDoc(workshopRef, { reservedBy: {}, requests });
-      alert(`🚫 تم إلغاء تأكيد ${reservedBy.name || "المدرب"} وإعادته إلى قائمة المتقدمين.`);
-    };
-
-    // 👁️ عرض النبذة
-    window.showAbout = function(name, city, org, about) {
-      document.getElementById("modalName").textContent = name;
-      document.getElementById("modalCity").textContent = city;
-      document.getElementById("modalOrg").textContent = org;
-      document.getElementById("modalAbout").textContent = about;
-      document.getElementById("aboutModal").style.display = "block";
-    };
-    window.closeModal = function() { document.getElementById("aboutModal").style.display = "none"; };
-
-  });
+  // عرض النافذة المنبثقة
+  window.showAbout = function(name, city, org, about) {
+    document.getElementById("modalName").textContent = name;
+    document.getElementById("modalCity").textContent = city;
+    document.getElementById("modalOrg").textContent = org;
+    document.getElementById("modalAbout").textContent = about;
+    document.getElementById("aboutModal").style.display = "block";
+  };
+  window.closeModal = function() { document.getElementById("aboutModal").style.display = "none"; };
 </script>
+
+<!-- مكتبات التصدير -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+  function exportExcel() {
+    const table = document.getElementById("workshopsTable");
+    const wb = XLSX.utils.table_to_book(table, { sheet: "ورش العمل" });
+    XLSX.writeFile(wb, "قائمة_ورش_العمل.xlsx");
+  }
+
+  async function exportPDF() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation: "landscape" });
+    doc.text("📋 تقرير ورش العمل والمشاركين", 150, 15, { align: "center" });
+    const table = document.getElementById("workshopsTable");
+    let rows = [];
+    for (let i = 1; i < table.rows.length; i++) {
+      const cells = table.rows[i].cells;
+      let rowData = [];
+      for (let j = 0; j < cells.length - 1; j++) rowData.push(cells[j].innerText);
+      rows.push(rowData);
+    }
+    let y = 25;
+    rows.forEach((r, idx) => doc.text(r.join(" | "), 10, y + (idx * 8)));
+    doc.save("تقرير_ورش_العمل.pdf");
+  }
+</script>
+
+</body>
+</html>
