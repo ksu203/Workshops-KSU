@@ -1,193 +1,4 @@
-<!DOCTYPE html>
-<html lang="ar">
-<head>
-  <meta charset="UTF-8">
-  <title>لوحة التحكم - ورش العمل</title>
-  <style>
-    body {
-      font-family: "SST Arabic", "Tahoma", sans-serif;
-      direction: rtl;
-      background: #f4f7fb;
-      margin: 0;
-      padding: 0;
-      color: #333;
-    }
-    header {
-      background: linear-gradient(90deg, #004080, #0066cc);
-      padding: 20px;
-      text-align: center;
-      color: #fff;
-    }
-    header h1 { margin: 0; }
-
-    /* إحصائيات */
-    .stats {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 15px;
-      margin: 25px auto;
-      max-width: 900px;
-    }
-    .stat-box {
-      flex: 1 1 250px;
-      background: #fff;
-      border-radius: 12px;
-      padding: 15px;
-      text-align: center;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      transition: 0.3s;
-    }
-    .stat-box:hover { transform: scale(1.03); }
-    .stat-box h3 { margin: 5px 0; font-size: 18px; color: #004080; }
-    .stat-box p { font-size: 28px; font-weight: bold; margin: 0; }
-    .total { border-top: 5px solid #999; }
-    .reserved { border-top: 5px solid #28a745; }
-    .unreserved { border-top: 5px solid #ff9800; }
-
-    .container {
-      max-width: 1200px;
-      margin: 30px auto;
-      background: #fff;
-      padding: 25px;
-      border-radius: 15px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-    }
-
-    h2 { color: #004080; margin-bottom: 15px; text-align: center; }
-
-    .export-buttons {
-      text-align: center;
-      margin-bottom: 15px;
-    }
-    .export-buttons button {
-      background: linear-gradient(90deg,#0066cc,#004080);
-      color: #fff;
-      border: none;
-      padding: 8px 15px;
-      font-size: 14px;
-      border-radius: 8px;
-      margin: 5px;
-      cursor: pointer;
-    }
-    .export-buttons button:hover { background: linear-gradient(90deg,#004080,#003060); }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 10px;
-      font-size: 13px;
-    }
-    table, th, td { border: 1px solid #ddd; }
-    th, td {
-      padding: 8px;
-      text-align: center;
-      vertical-align: middle;
-    }
-    th { background: #004080; color: #fff; }
-    tr:nth-child(even) { background: #f9f9f9; }
-
-    .reserved { color: red; font-weight: bold; }
-    .available { color: green; font-weight: bold; }
-
-    button.action {
-      padding: 5px 10px;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      color: #fff;
-      font-size: 12px;
-    }
-    .delete-btn { background: #b30000; }
-    .approve-btn { background: #007bff; }
-    .about-btn { background: #ff9800; }
-
-    /* النافذة المنبثقة */
-    .modal {
-      display: none;
-      position: fixed;
-      z-index: 1000;
-      left: 0; top: 0;
-      width: 100%; height: 100%;
-      background-color: rgba(0,0,0,0.6);
-      backdrop-filter: blur(4px);
-    }
-    .modal-content {
-      background: #fff;
-      margin: 10% auto;
-      padding: 20px;
-      border-radius: 12px;
-      width: 90%;
-      max-width: 500px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-      text-align: right;
-    }
-    .close {
-      color: #333;
-      float: left;
-      font-size: 20px;
-      cursor: pointer;
-      font-weight: bold;
-    }
-    .close:hover { color: red; }
-  </style>
-</head>
-<body>
-
-<header>
-  <h1>لوحة التحكم - ورش العمل</h1>
-</header>
-
-<!-- 🔹 لوحة الإحصائيات -->
-<div class="stats">
-  <div class="stat-box total"><h3>إجمالي الورش</h3><p id="totalCount">0</p></div>
-  <div class="stat-box reserved"><h3>الورش المحجوزة</h3><p id="reservedCount">0</p></div>
-  <div class="stat-box unreserved"><h3>الورش الشاغرة</h3><p id="unreservedCount">0</p></div>
-</div>
-
-<div class="container">
-  <h2>📋 قائمة الورش والمشاركين</h2>
-
-  <div class="export-buttons">
-    <button onclick="exportExcel()">📊 تصدير Excel</button>
-  </div>
-
-  <table id="workshopsTable">
-    <thead>
-      <tr>
-        <th>م</th>
-        <th>العنوان</th>
-        <th>التاريخ</th>
-        <th>الوقت</th>
-        <th>الحالة</th>
-        <th>عدد المتقدمين</th>
-        <th>الاسم</th>
-        <th>الإيميل</th>
-        <th>الجوال</th>
-        <th>الجهة</th>
-        <th>نبذة</th>
-        <th>تاريخ الحجز</th>
-        <th>إجراء</th>
-      </tr>
-    </thead>
-    <tbody id="workshops"></tbody>
-  </table>
-</div>
-
-<!-- 🔹 نافذة عرض النبذة -->
-<div id="aboutModal" class="modal">
-  <div class="modal-content">
-    <span class="close" onclick="closeModal()">&times;</span>
-    <h3>📄 تفاصيل المدرب</h3>
-    <p><strong>الاسم:</strong> <span id="modalName"></span></p>
-    <p><strong>المدينة:</strong> <span id="modalCity"></span></p>
-    <p><strong>الجهة:</strong> <span id="modalOrg"></span></p>
-    <p><strong>النبذة:</strong></p>
-    <p id="modalAbout" style="white-space: pre-wrap; background:#f9f9f9; padding:10px; border-radius:8px;"></p>
-  </div>
-</div>
-
-<!-- Firebase + المنطق -->
+<!-- Firebase + إدارة الورش -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
   import { getFirestore, collection, doc, updateDoc, onSnapshot, getDoc, getDocs } 
@@ -208,7 +19,7 @@
   const workshopsRef = collection(db, "workshops");
   let workshopsData = [];
 
-  // 🔹 عرض الورش وتحديث العدادات
+  // 📊 عرض الورش والعدادات
   onSnapshot(workshopsRef, (snapshot) => {
     workshopsData = [];
     const tbody = document.getElementById('workshops');
@@ -224,9 +35,10 @@
       const hasTrainer = data.reservedBy && Object.keys(data.reservedBy).length > 0;
       if (hasTrainer) reserved++; else unreserved++;
 
+      // جمع المتقدمين
       let participants = [];
       if (Array.isArray(data.requests)) participants = [...data.requests];
-      if (hasTrainer) participants.push(data.reservedBy);
+      if (hasTrainer) participants.push({ ...data.reservedBy, confirmed: true });
 
       workshopsData.push({
         id: docSnap.id,
@@ -234,38 +46,34 @@
         date: data.date,
         time: data.time,
         participants,
-        bookingClosed: data.bookingClosed || false,
         reservedBy: data.reservedBy || {}
       });
 
-      participants.forEach((p, idx) => {
-        const reservedAt = p.timestamp ? 
-          (p.timestamp.toDate ? p.timestamp.toDate().toLocaleString("ar-EG") : new Date(p.timestamp).toLocaleString("ar-EG")) : "";
-        const isConfirmed = (data.reservedBy && data.reservedBy.email === p.email);
+      // إنشاء صف واحد لكل ورشة
+      const row = document.createElement('tr');
+      const participantsHTML = participants.length
+        ? participants.map((p, idx) => `
+          <div style="margin-bottom:5px; padding:4px; border-radius:6px; background:${p.confirmed ? '#d4edda' : '#f0f0f0'};">
+            <strong>${p.name || ''}</strong> <br>
+            <small>${p.email || ''}</small> <br>
+            ${p.confirmed 
+              ? `<button class="action delete-btn" onclick="cancelApproval('${docSnap.id}')">❌ إلغاء</button>`
+              : `<button class="action approve-btn" onclick="approveTrainer('${docSnap.id}', ${idx})">✅ تأكيد</button>`}
+          </div>
+        `).join('')
+        : `<span style="color:#999;">لا يوجد متقدمين بعد</span>`;
 
-        const row = document.createElement('tr');
-        row.innerHTML = `
-          <td>${i}</td>
-          <td>${data.title || ''}</td>
-          <td>${data.date || ''}</td>
-          <td>${data.time || ''}</td>
-          <td>${hasTrainer ? '<span class="reserved">محجوز</span>' : '<span class="available">شاغر</span>'}</td>
-          <td>${participants.length}</td>
-          <td>${p.name || ''}</td>
-          <td>${p.email || ''}</td>
-          <td>${p.phone || ''}</td>
-          <td>${p.organization || ''}</td>
-          <td><button class="action about-btn" onclick="showAbout('${p.name}','${p.city||''}','${p.organization||''}','${p.about||''}')">👁️</button></td>
-          <td>${reservedAt}</td>
-          <td>
-            ${isConfirmed 
-              ? `<button class="action delete-btn" onclick="cancelApproval('${data.id}')">❌ إلغاء</button>` 
-              : `<button class="action approve-btn" onclick="approveTrainer('${data.id}', ${idx})">✅ تأكيد</button>`}
-            <button class="action delete-btn" onclick="deleteParticipant('${data.id}', ${idx})">🗑️</button>
-          </td>`;
-        tbody.appendChild(row);
-        i++;
-      });
+      row.innerHTML = `
+        <td>${i}</td>
+        <td>${data.title || ''}</td>
+        <td>${data.date || ''}</td>
+        <td>${data.time || ''}</td>
+        <td>${hasTrainer ? '<span class="reserved">محجوز</span>' : '<span class="available">شاغر</span>'}</td>
+        <td>${participants.length}</td>
+        <td>${participantsHTML}</td>
+      `;
+      tbody.appendChild(row);
+      i++;
     });
 
     document.getElementById("totalCount").textContent = total;
@@ -273,17 +81,23 @@
     document.getElementById("unreservedCount").textContent = unreserved;
   });
 
-  // ✅ تأكيد المدرب مع منع التكرار
+  // ✅ تأكيد المدرب (مع الحماية من التكرار)
   window.approveTrainer = async function (workshopId, participantIndex) {
     const workshopRef = doc(db, "workshops", workshopId);
-    const workshopSnap = await getDoc(workshopRef);
-    if (!workshopSnap.exists()) return alert("❌ لم يتم العثور على الورشة.");
+    let workshopSnap = await getDoc(workshopRef);
+
+    if (!workshopSnap.exists()) {
+      await new Promise(r => setTimeout(r, 800));
+      workshopSnap = await getDoc(workshopRef);
+    }
+    if (!workshopSnap.exists()) return showPopup("❌ لم يتم العثور على الورشة.", "error");
 
     const data = workshopSnap.data();
     const requests = Array.isArray(data.requests) ? [...data.requests] : [];
     const selected = requests[participantIndex];
-    if (!selected) return alert("❌ لم يتم العثور على بيانات المتقدم.");
+    if (!selected) return showPopup("⚠️ لم يتم العثور على بيانات المتقدم.", "warn");
 
+    // تحقق من التكرار في ورش أخرى
     const snapshot = await getDocs(collection(db, "workshops"));
     let duplicateWorkshop = null;
     snapshot.forEach((docSnap) => {
@@ -300,71 +114,58 @@
     });
 
     if (duplicateWorkshop) {
-      alert(`⚠️ لا يمكن تأكيد ${selected.name || "المدرب"} لأنه مؤكد مسبقًا في الورشة:
-"${duplicateWorkshop}".`);
+      showPopup(`⚠️ لا يمكن تأكيد ${selected.name || "المدرب"} لأنه مؤكد مسبقًا في "${duplicateWorkshop}".`, "warn");
       return;
     }
 
     if (data.reservedBy && Object.keys(data.reservedBy).length > 0) {
       const existingName = data.reservedBy.name || "مدرب آخر";
-      alert(`⚠️ تم بالفعل تأكيد (${existingName}) لهذه الورشة.`);
+      showPopup(`⚠️ تم بالفعل تأكيد (${existingName}) لهذه الورشة.`, "warn");
       return;
     }
 
     await updateDoc(workshopRef, { reservedBy: selected });
     requests.splice(participantIndex, 1);
     await updateDoc(workshopRef, { requests });
-    alert(`✅ تم تأكيد ${selected.name || "المدرب"} لهذه الورشة.`);
+    showPopup(`✅ تم تأكيد ${selected.name || "المدرب"} لهذه الورشة بنجاح.`, "success");
   };
 
   // ❌ إلغاء التأكيد
   window.cancelApproval = async function (workshopId) {
     const workshopRef = doc(db, "workshops", workshopId);
     const workshopSnap = await getDoc(workshopRef);
-    if (!workshopSnap.exists()) return alert("❌ لم يتم العثور على الورشة.");
+    if (!workshopSnap.exists()) return showPopup("❌ لم يتم العثور على الورشة.", "error");
 
     const data = workshopSnap.data();
     const reservedBy = data.reservedBy || {};
-    if (!Object.keys(reservedBy).length) return alert("⚠️ لا يوجد مدرب مؤكد.");
+    if (!Object.keys(reservedBy).length) return showPopup("⚠️ لا يوجد مدرب مؤكد.", "warn");
 
     const requests = Array.isArray(data.requests) ? [...data.requests, reservedBy] : [reservedBy];
     await updateDoc(workshopRef, { reservedBy: {}, requests });
-    alert(`🚫 تم إلغاء تأكيد ${reservedBy.name || "المدرب"}.`);
+    showPopup(`🚫 تم إلغاء تأكيد ${reservedBy.name || "المدرب"}.`, "info");
   };
 
-  // 🗑️ حذف مشارك
-  window.deleteParticipant = async function(workshopId, participantIndex) {
-    const workshopRef = doc(db, "workshops", workshopId);
-    const workshopSnap = await getDoc(workshopRef);
-    if (workshopSnap.exists()) {
-      const data = workshopSnap.data();
-      const requests = Array.isArray(data.requests) ? [...data.requests] : [];
-      if (participantIndex >= requests.length && data.reservedBy) await updateDoc(workshopRef, { reservedBy: {} });
-      else { requests.splice(participantIndex, 1); await updateDoc(workshopRef, { requests: requests }); }
-      alert("✅ تم حذف المشارك بنجاح.");
-    }
-  };
-
-  // 👁️ عرض النبذة
-  window.showAbout = function(name, city, org, about) {
-    document.getElementById("modalName").textContent = name;
-    document.getElementById("modalCity").textContent = city;
-    document.getElementById("modalOrg").textContent = org;
-    document.getElementById("modalAbout").textContent = about;
-    document.getElementById("aboutModal").style.display = "block";
-  };
-  window.closeModal = function() { document.getElementById("aboutModal").style.display = "none"; };
-</script>
-
-<!-- 📦 مكتبة Excel -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script>
-  function exportExcel() {
-    const table = document.getElementById("workshopsTable");
-    const wb = XLSX.utils.table_to_book(table, { sheet: "ورش العمل" });
-    XLSX.writeFile(wb, "قائمة_ورش_العمل.xlsx");
+  // 💬 نافذة منبثقة أنيقة
+  function showPopup(message, type = "info") {
+    const colors = {
+      success: "#28a745",
+      error: "#dc3545",
+      warn: "#ffc107",
+      info: "#007bff"
+    };
+    const popup = document.createElement("div");
+    popup.textContent = message;
+    popup.style.cssText = `
+      position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+      background: ${colors[type] || "#333"}; color: #fff; padding: 12px 25px;
+      border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+      z-index: 9999; font-size: 14px; text-align: center; opacity: 0; transition: opacity 0.3s ease;
+    `;
+    document.body.appendChild(popup);
+    setTimeout(() => popup.style.opacity = "1", 100);
+    setTimeout(() => {
+      popup.style.opacity = "0";
+      setTimeout(() => popup.remove(), 400);
+    }, 3000);
   }
 </script>
-
-</body>
-</html>
