@@ -26,7 +26,7 @@
       justify-content: center;
       gap: 15px;
       margin: 25px auto;
-      max-width: 1100px;
+      max-width: 1200px;
     }
     .stat-box {
       flex: 1 1 180px;
@@ -43,6 +43,7 @@
     .total { border-top: 5px solid #999; }
     .reserved { border-top: 5px solid #28a745; }
     .unreserved { border-top: 5px solid #ff9800; }
+    .unique { border-top: 5px solid #6a1b9a; }
 
     .container {
       max-width: 1200px;
@@ -129,6 +130,7 @@
   <div class="stat-box total"><h3>إجمالي الورش</h3><p id="totalCount">0</p></div>
   <div class="stat-box reserved"><h3>الورش المحجوزة</h3><p id="reservedCount">0</p></div>
   <div class="stat-box unreserved"><h3>الورش غير المحجوزة</h3><p id="unreservedCount">0</p></div>
+  <div class="stat-box unique"><h3>المشاركين (بدون تكرار)</h3><p id="uniqueParticipants">0</p></div>
 </div>
 
 <div class="container">
@@ -185,6 +187,7 @@
     tbody.innerHTML = "";
     let i = 1;
     let total = 0, reserved = 0, unreserved = 0;
+    let uniqueSet = new Set();
 
     snapshot.forEach((docSnap) => {
       const data = docSnap.data();
@@ -193,6 +196,8 @@
       let participants = [];
       if (Array.isArray(data.requests)) participants = [...participants, ...data.requests];
       if (data.reservedBy && Object.keys(data.reservedBy).length > 0) participants.push(data.reservedBy);
+
+      participants.forEach(p => { if (p.email) uniqueSet.add(p.email); });
 
       let statusHTML = "";
       if (data.bookingClosed) {
@@ -217,10 +222,7 @@
           const row = document.createElement('tr');
           row.innerHTML = `
             <td>${i}</td>
-            <td>
-              ${data.title || ''}
-              ${visibilityTag}
-            </td>
+            <td>${data.title || ''}${visibilityTag}</td>
             <td>${data.date || ''}</td>
             <td>${data.time || ''}</td>
             <td>${statusHTML}</td>
@@ -266,6 +268,7 @@
     document.getElementById("totalCount").textContent = total;
     document.getElementById("reservedCount").textContent = reserved;
     document.getElementById("unreservedCount").textContent = unreserved;
+    document.getElementById("uniqueParticipants").textContent = uniqueSet.size;
   });
 
   // حذف مشارك
@@ -281,7 +284,7 @@
     }
   };
 
-  // 🔹 تبديل حالة الظهور (إخفاء / إظهار)
+  // تبديل حالة الظهور (إخفاء / إظهار)
   window.toggleVisibility = async function(workshopId, hideIt) {
     const workshopRef = doc(db, "workshops", workshopId);
     const newStatus = hideIt === true || hideIt === 'true';
@@ -290,13 +293,38 @@
   };
 </script>
 
+<!-- نافذة عرض التفاصيل -->
+<div id="popup" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
+  <div style="background:#fff; padding:25px; border-radius:12px; width:420px; box-shadow:0 4px 15px rgba(0,0,0,0.3); position:relative;">
+    <h3 style="margin-top:0; color:#004080;">👤 تفاصيل المشارك</h3>
+    <p id="popupContent" style="line-height:1.6; font-size:14px;"></p>
+    <button onclick="closePopup()" style="background:#004080; color:#fff; border:none; padding:8px 15px; border-radius:8px; cursor:pointer;">إغلاق</button>
+  </div>
+</div>
+
+<script>
+function showAbout(name, city, org, about) {
+  const content = `
+    <strong>الاسم:</strong> ${name || '-'}<br>
+    <strong>المدينة:</strong> ${city || '-'}<br>
+    <strong>الجهة:</strong> ${org || '-'}<br>
+    <strong>نبذة:</strong><br>${about || '-'}
+  `;
+  document.getElementById("popupContent").innerHTML = content;
+  document.getElementById("popup").style.display = "flex";
+}
+function closePopup() {
+  document.getElementById("popup").style.display = "none";
+}
+</script>
+
 <!-- مكتبات Excel -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
 function exportExcel() {
   const table = document.getElementById("workshopsTable");
   const wb = XLSX.utils.table_to_book(table, { sheet: "ورش العمل" });
-  const ws = wb.Sheets["ورش العمل"];
   XLSX.writeFile(wb, "تقرير_ورش_العمل.xlsx");
 }
 </script>
