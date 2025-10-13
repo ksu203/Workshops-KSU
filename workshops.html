@@ -60,7 +60,6 @@
       border-radius: 6px;
       font-size: 14px;
       line-height: 1.8;
-      position: relative;
     }
     input[type="checkbox"] {
       transform: scale(1.5);
@@ -104,14 +103,8 @@
       color: #004080;
       margin-bottom: 10px;
     }
-    .reserved {
-      color: red;
-      font-weight: bold;
-    }
-    .available {
-      color: green;
-      font-weight: bold;
-    }
+    .reserved { color: red; font-weight: bold; }
+    .available { color: green; font-weight: bold; }
   </style>
 </head>
 <body>
@@ -121,7 +114,6 @@
   <h1>منصة عناوين ورش العمل</h1>
 </header>
 
-<!-- التسجيل -->
 <div class="container" id="registration">
   <h2>📋 التسجيل والإقرار</h2>
   
@@ -143,37 +135,60 @@
   <label>نبذة عنك *</label>
   <textarea id="about" rows="5" required></textarea>
 
-  <!-- تنبيه بعد التسجيل -->
   <div style="background:#eaf4ff; color:#003366; font-size:14px; padding:8px 12px; border-radius:6px; margin:15px 0; font-weight:bold;">
     نأمل منكم التكرم بإرسال صورة شخصية على الإيميل  
     <b>malsehali1.c@KSU.EDU.SA</b>  
     لاستخدامها في شاشات عرض ورش العمل الخاصة بالملتقى
   </div>
 
-  <!-- نص الشروط والأحكام -->
   <div class="agreement-box" id="termsBox">
     <img src="HRDF.jpg" alt="شعار صندوق تنمية الموارد البشرية" style="width:120px; float:right; margin:5px 0 10px 10px;">
 
     <h3 style="color:#004080; text-align:center;">📑 ملتقى التوجيه والإرشاد المهني الأول</h3>
-    <h4 style="text-align:center; margin-bottom:15px;">التوضيحات والتعليمات الخاصة بإعداد وتقديم حقائب ورش العمل</h4>
+    <h4 style="text-align:center;">التوضيحات والتعليمات الخاصة بإعداد وتقديم حقائب ورش العمل</h4>
 
     <p>
-      حرصًا على توحيد مستوى ورش العمل وضمان جودة المخرجات وتحقيق الفائدة المرجوة للمشاركين...
-      (يُستكمل النص بنفس الصياغة المعتمدة سابقًا)
+حرصًا على توحيد مستوى ورش العمل وضمان جودة المخرجات وتحقيق الفائدة المرجوة للمشاركين، نضع بين أيديكم مجموعة من التوضيحات والتعليمات الخاصة بإعداد وتقديم ورش العمل في ملتقى الإرشاد المهني.<br><br>
+تهدف هذه الضوابط إلى مساعدة المدربين على الالتزام بالمعايير العلمية والتنظيمية المعتمدة، وتعزيز تجربة المتدربين من خلال محتوى متكامل وأسلوب عرض احترافي.<br><br>
+نأمل منكم الاطلاع عليها بعناية والالتزام بما ورد فيها.
     </p>
 
+    <h4>أولاً: توضيحات هامة:</h4>
+    <ol>
+      <li>تم اختيار العناوين من قِبل لجنة علمية متخصصة، واعتمدتها الجمعية الوطنية للتطوير المهني.</li>
+      <li>مدة ورشة العمل لا تقل عن (50) دقيقة ولا تتجاوز (60) دقيقة.</li>
+      <li>الحد الأقصى لعدد المتدربين في الورشة (15) متدرباً.</li>
+      <li>الفئة المستهدفة: المرشدون المهنيون والمهتمون بالمجال.</li>
+      <li>ستقام الورشة في مكان مستقل ومجهز بكافة الأدوات.</li>
+      <li>يمنح المدرب شهادة تقدير بعد انتهاء الورشة.</li>
+      <li>سيتم العرض في شاشة خارجية (العنوان، الاسم، الصورة).</li>
+      <li>تخضع الحقيبة لمراجعة لجنة الملتقى لضمان الجودة والاتساق.</li>
+    </ol>
+
+    <h4>ثانياً: تعليمات عامة:</h4>
+    <ol>
+      <li>استخدام اللغة العربية في الإعداد والعرض.</li>
+      <li>الالتزام بالعنوان والمحاور المحددة.</li>
+      <li>إعداد المحتوى باستخدام PowerPoint.</li>
+      <li>وضوح اللغة ومناسبتها للفئة المستهدفة.</li>
+      <li>التنوع في أساليب العرض.</li>
+      <li>التنسيق المستمر مع المنسق.</li>
+      <li>عدم الترويج لأي جهة إلا بموافقة الصندوق.</li>
+      <li>تقديم تقرير بعد الورشة عن الأداء والتوصيات.</li>
+    </ol>
+
     <p style="margin-top:20px; font-weight:bold; color:#444;">
-      أقر أنا المدرب/ _____________________________________، بالاطلاع على جميع التعليمات والتوضيحات أعلاه والالتزام التام بما ورد فيها.
+أقر أنا المدرب/ _____________________________________ بالاطلاع على جميع التعليمات والتوضيحات أعلاه والالتزام التام بما ورد فيها، كما لا أمانع في استخدام محتوى الورشة لأغراض إعلامية تخص الملتقى.
     </p>
+
     <p style="text-align:center; font-weight:bold; color:#004080;">تمنياتنا لكم بالتوفيق والسداد</p>
 
     <div style="text-align:center; margin-top:15px;">
-      <button onclick="printTerms()" style="width:auto; background:#008000;">🖨️ طباعة الشروط</button>
-      <button onclick="saveAsPDF()" style="width:auto; background:#0055aa;">💾 حفظ كـ PDF</button>
+      <button onclick="printTerms()" style="width:auto; background:#008000;">🖨️ طباعة</button>
+      <button onclick="saveAsPDF()" style="width:auto; background:#0055aa;">💾 حفظ PDF</button>
     </div>
   </div>
 
-  <!-- مربع الإقرار -->
   <div style="text-align:right; margin-top:20px;">
     <label style="display:flex; justify-content:flex-start; align-items:center; gap:10px; font-weight:bold;">
       أقر وأوافق على الشروط والأحكام
@@ -184,45 +199,41 @@
   <button id="submitBtn" disabled>تسجيل ومتابعة</button>
 </div>
 
-<!-- قائمة الورش -->
 <div class="container" id="workshopsContainer" style="display:none;">
   <h2>📝 قائمة عناوين ورش العمل</h2>
   <div id="workshops"></div>
 </div>
 
-<!-- طباعة الشروط -->
 <script>
-  function printTerms() {
-    const terms = document.getElementById("termsBox").innerHTML;
-    const newWin = window.open("");
-    newWin.document.write("<html><head><title>الشروط والأحكام</title></head><body dir='rtl'>" + terms + "</body></html>");
-    newWin.print();
-    newWin.close();
-  }
-
-  function saveAsPDF() {
-    import('https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js')
-    .then(() => {
-      const element = document.getElementById("termsBox");
-      html2pdf().from(element).save("الشروط والأحكام.pdf");
-    });
-  }
+function printTerms() {
+  const terms = document.getElementById("termsBox").innerHTML;
+  const newWin = window.open("");
+  newWin.document.write("<html><head><title>الشروط</title></head><body dir='rtl'>" + terms + "</body></html>");
+  newWin.print();
+  newWin.close();
+}
+function saveAsPDF() {
+  import('https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js')
+  .then(() => {
+    const element = document.getElementById("termsBox");
+    html2pdf().from(element).save("الشروط والأحكام.pdf");
+  });
+}
 </script>
 
-<!-- Firebase -->
+<!-- Firebase (نفس إعداداتك) -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
   import { getFirestore, collection, doc, updateDoc, onSnapshot, addDoc, getDoc, arrayUnion } 
     from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
-
+  
   const firebaseConfig = {
     apiKey: "AIzaSyCC5Wea1ccPTVNo8nfe2fSv7s6JIKulXTc",
     authDomain: "reservation-system-492d6.firebaseapp.com",
     projectId: "reservation-system-492d6",
     storageBucket: "reservation-system-492d6.appspot.com",
     messagingSenderId: "982147661254",
-    appId: "1:982147661254:web:47606a698bd01b5b0746c7",
-    measurementId: "G-J3BQB3M68D"
+    appId: "1:982147661254:web:47606a698bd01b5b0746c7"
   };
 
   const app = initializeApp(firebaseConfig);
@@ -255,27 +266,21 @@
       return;
     }
 
-    try {
-      await addDoc(collection(db, "trainers"), trainer);
-      currentUser = trainer;
-      registered = true;
-      alert("✅ تم تسجيل بياناتك بنجاح، يمكنك الآن التقديم على الورش.");
-      document.getElementById("registration").style.display = "none";
-      document.getElementById("workshopsContainer").style.display = "block";
-    } catch (e) {
-      alert("❌ خطأ أثناء حفظ البيانات: " + e.message);
-    }
+    await addDoc(collection(db, "trainers"), trainer);
+    currentUser = trainer;
+    registered = true;
+    alert("✅ تم التسجيل بنجاح.");
+    document.getElementById("registration").style.display = "none";
+    document.getElementById("workshopsContainer").style.display = "block";
   });
 
   onSnapshot(workshopsRef, (snapshot) => {
     const container = document.getElementById('workshops');
     container.innerHTML = "";
     let i = 1;
-
     snapshot.forEach((docSnap) => {
       const data = docSnap.data();
       if (data.hidden === true) return;
-
       const div = document.createElement('div');
       div.className = "workshop";
       div.innerHTML = `
@@ -283,8 +288,8 @@
         <p><strong>📅 التاريخ:</strong> ${data.date || ''}</p>
         <p><strong>⏰ الوقت:</strong> ${data.time || ''}</p>
         <ul>${Array.isArray(data.topics) ? data.topics.map(t => `<li>${t}</li>`).join("") : ''}</ul>
-        <span class="available">متاح للتقديم ✅</span><br>
-        <button onclick="reserveWorkshop('${docSnap.id}')">تقديم طلب</button>
+        <span class="available">متاح ✅</span><br>
+        <button onclick="reserveWorkshop('${docSnap.id}')">حجز</button>
       `;
       container.appendChild(div);
       i++;
@@ -296,30 +301,19 @@
       alert("⚠️ يجب التسجيل أولاً قبل الحجز.");
       return;
     }
-
     const docRef = doc(db, "workshops", id);
     const snap = await getDoc(docRef);
     const data = snap.data();
     const existing = Array.isArray(data.requests) && data.requests.find(r => r.email === currentUser.email);
-
-    if (existing) {
-      alert("⚠️ لقد قمت بالتقديم على هذه الورشة مسبقاً.");
-      return;
-    }
-
+    if (existing) { alert("⚠️ سبق أن تقدمت لهذه الورشة."); return; }
     await updateDoc(docRef, { 
       requests: arrayUnion({
-        name: currentUser.name,
-        email: currentUser.email,
-        phone: currentUser.phone,
-        organization: currentUser.organization || '',
-        about: currentUser.about || '',
-        workshopTitle: data.title || '',
-        timestamp: new Date()
+        name: currentUser.name, email: currentUser.email, phone: currentUser.phone,
+        organization: currentUser.organization || '', about: currentUser.about || '',
+        workshopTitle: data.title || '', timestamp: new Date()
       })
     });
-
-    alert("✅ تم تسجيل طلبك على الورشة، وسيتم مراجعة الطلبات لاحقاً.");
+    alert("✅ تم تسجيل طلبك بنجاح.");
   };
 </script>
 
